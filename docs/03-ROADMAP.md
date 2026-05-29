@@ -25,7 +25,7 @@ Legend: ✅ done · 🟡 partial · ⛔ blocked · ⬜ not started.
 - ✅ `query(...)` → spatial + temporal + keyword retrieval, returns nodes
 - ✅ **Semantic query** (pulled forward from M2): BYO `Encoder` protocol + `OpenClipEncoder` (`[clip]` extra), cosine over node features
 - ✅ `serialize(format="prompt"|"json")` → compact graph text
-- ⬜ Web viewer (read-only) — deferred, not yet built
+- ✅ Web viewer (read-only) — `spatialmem viz` exports a self-contained HTML scene (built in M2)
 - ⬜ Replica/ScanNet RGB-D demo — needs the M2 perception adapter (CUDA)
 
 **Exit:** README quickstart runs verbatim on a clean machine (`examples/01` + `02`). Replica demo rolls into M2.
@@ -55,7 +55,7 @@ Blocked on a CUDA dev box:
 - Benchmark vs eMEM on a shared dataset (open-vocab queries) — reuses `bench.recall_at_k`
 - First external integration writeup (target: a Brain2Robot / L3-planner reference loop)
 - v0.1.0 PyPI release + launch post
-- Web viewer (carried from M1)
+- 3D web viewer (the M2 `spatialmem viz` is a 2D top-down read-only start)
 
 **Exit:** 100 GitHub ★, 3 external users in Discord, 1 cited integration.
 

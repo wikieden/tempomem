@@ -28,6 +28,9 @@ All notable changes to SpatialMem are documented here. Format follows
   seam. `add_frame` routes a posed frame through a configured adapter to
   detections, then fuses. Any backend or test stub plugs in; the concrete
   ConceptGraphs adapter lands behind a `[perception]` extra (needs CUDA).
+- **Read-only HTML viewer** — `spatialmem viz store.smem -o scene.html` (and
+  `spatialmem.viz.to_html`). Self-contained: top-down 2D scatter of node
+  centroids + a node table, no JS framework / network. (Deferred M1 web viewer.)
 
 ### Notes
 - Perception backend decided: `PerceptionAdapter` protocol + ConceptGraphs

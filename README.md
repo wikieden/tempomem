@@ -47,6 +47,7 @@ Runnable, no GPU: `python examples/01_quickstart.py` and `examples/02_query_and_
 | `decay()` + `forget()` + `resplit()` memory hygiene | ✅ |
 | `serialize(format="prompt"/"json")` for LLM hand-off | ✅ |
 | `recall_at_k` eval harness | ✅ |
+| Read-only HTML viewer — `spatialmem viz store.smem -o scene.html` | ✅ |
 | RGB-D `add_frame` via `PerceptionAdapter` protocol | ✅ seam; ConceptGraphs adapter WIP (CUDA) |
 
 Core install is **numpy-only**. Heavy backends live behind extras: `[clip]`, `[vec]`, `[perception]`.

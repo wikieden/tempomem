@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+from pathlib import Path
 
 from . import SpatialMemory, __version__
 
@@ -29,6 +30,19 @@ def _inspect(path: str, embedding_dim: int) -> int:
     return 0
 
 
+def _viz(path: str, embedding_dim: int, out: str | None) -> int:
+    from . import viz
+
+    with SpatialMemory.open(path, embedding_dim=embedding_dim, create=False, readonly=True) as mem:
+        html = viz.to_html(mem._conn, embedding_dim, title=Path(path).name)
+    if out:
+        Path(out).write_text(html, encoding="utf-8")
+        print(f"wrote {out} ({len(html)} bytes)")
+    else:
+        sys.stdout.write(html)
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="spatialmem", description="SpatialMem CLI")
     parser.add_argument("--version", action="version", version=f"spatialmem {__version__}")
@@ -38,9 +52,16 @@ def main(argv: list[str] | None = None) -> int:
     p_ins.add_argument("path")
     p_ins.add_argument("--embedding-dim", type=int, default=512)
 
+    p_viz = sub.add_parser("viz", help="export a read-only HTML scene viewer")
+    p_viz.add_argument("path")
+    p_viz.add_argument("-o", "--out", default=None, help="output .html (default: stdout)")
+    p_viz.add_argument("--embedding-dim", type=int, default=512)
+
     args = parser.parse_args(argv)
     if args.cmd == "inspect":
         return _inspect(args.path, args.embedding_dim)
+    if args.cmd == "viz":
+        return _viz(args.path, args.embedding_dim, args.out)
     parser.print_help()
     return 1
 
