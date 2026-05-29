@@ -22,10 +22,14 @@ from ._errors import (
     StoreError,
 )
 from .config import FusionConfig, SpatialMemConfig
+from .encoders import Encoder
 from .frame import Detection, Observation
 from .query import NodeHit, QueryResult
+from .query import detect_intent as _detect_intent
 from .query import query as _query
 from .query import recent as _recent
+from .query import semantic_keyword as _semantic_keyword
+from .query import semantic_vec as _semantic_vec
 from .query import spatial as _spatial
 from .store import StoreStats
 
@@ -36,6 +40,7 @@ __all__ = [
     "BadDetectionError",
     "CommitStats",
     "Detection",
+    "Encoder",
     "FusionConfig",
     "IngestError",
     "NodeHit",
@@ -72,11 +77,17 @@ class SpatialMemory:
         embedding_dim: int,
         readonly: bool,
         config: SpatialMemConfig | None = None,
+        encoder: Encoder | None = None,
     ) -> None:
+        if encoder is not None and encoder.dim != embedding_dim:
+            raise SchemaMismatchError(
+                f"encoder dim {encoder.dim} != store embedding_dim {embedding_dim}"
+            )
         self._conn = conn
         self._dim = embedding_dim
         self._readonly = readonly
         self._cfg = config or SpatialMemConfig()
+        self._encoder = encoder
         self._pending: list[int] = []  # observation ids awaiting fusion
 
     # ---- lifecycle -------------------------------------------------------
@@ -90,9 +101,10 @@ class SpatialMemory:
         create: bool = True,
         readonly: bool = False,
         config: SpatialMemConfig | None = None,
+        encoder: Encoder | None = None,
     ) -> SpatialMemory:
         conn = persist.connect(path, embedding_dim=embedding_dim, readonly=readonly, create=create)
-        return cls(conn, embedding_dim, readonly, config)
+        return cls(conn, embedding_dim, readonly, config, encoder)
 
     def close(self) -> None:
         if self._conn is not None:
@@ -171,9 +183,25 @@ class SpatialMemory:
 
     def query(self, text: str, *, k: int = 10, intent: str = "auto") -> QueryResult:
         try:
+            used = _detect_intent(text) if intent == "auto" else intent
+            if used in ("semantic", "hybrid") and self._encoder is not None:
+                qv = self._encoder.encode_text([text])[0]
+                hits = _semantic_vec(self._conn, qv, k=k)
+                return QueryResult(
+                    nodes=hits, intent_used=used, debug={"text": text, "encoder": True}
+                )
             return _query(self._conn, text, k=k, intent=intent)
         except sqlite3.Error as e:  # pragma: no cover
             raise QueryError(str(e)) from e
+
+    def semantic(self, text: str, *, k: int = 10) -> list[NodeHit]:
+        """Semantic retrieval. Uses the encoder when one is configured (cosine
+        over node features); otherwise falls back to label keyword match.
+        """
+        if self._encoder is not None:
+            qv = self._encoder.encode_text([text])[0]
+            return _semantic_vec(self._conn, qv, k=k)
+        return _semantic_keyword(self._conn, text, k=k)
 
     def spatial(
         self,

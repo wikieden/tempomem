@@ -94,6 +94,23 @@ def spatial(
     return [_hit(n, max(0.0, 1.0 - d / span)) for d, n in scored[:k]]
 
 
+def semantic_vec(conn: sqlite3.Connection, qvec: np.ndarray, *, k: int = 10) -> list[NodeHit]:
+    """Cosine similarity of a query embedding against node feature centroids.
+
+    M1 uses a linear scan over BLOB features (fine < 10k nodes); sqlite-vec ANN
+    is a later milestone. qvec is assumed L2-normalized.
+    """
+    q = np.asarray(qvec, dtype=np.float32).reshape(-1)
+    scored: list[tuple[float, store.NodeRow]] = []
+    for n in store.all_nodes(conn):
+        f = store.node_feature(conn, n.id)
+        if f is None or f.shape[0] != q.shape[0]:
+            continue
+        scored.append((float(np.dot(q, f)), n))
+    scored.sort(key=lambda t: (-t[0], t[1].id))
+    return [_hit(n, s) for s, n in scored[:k]]
+
+
 def semantic_keyword(conn: sqlite3.Connection, text: str, *, k: int = 10) -> list[NodeHit]:
     """M0 placeholder for semantic search: case-insensitive label substring match.
 

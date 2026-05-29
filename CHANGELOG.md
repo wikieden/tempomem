@@ -17,6 +17,11 @@ All notable changes to SpatialMem are documented here. Format follows
   passed via `SpatialMemory.open(config=...)`.
 - `store.candidates_near`, `store.update_node` — proximity query + merge update.
 - `fusion.iou3d`, `fusion.label_compat`, `fusion.score` — scoring primitives.
+- **Semantic query** via a BYO `Encoder` protocol. `SpatialMemory.open(encoder=...)`
+  enables `query("red mug")` / `mem.semantic(text)` to embed the query string and
+  rank nodes by feature cosine (linear scan); falls back to label keyword match
+  when no encoder is set. `OpenClipEncoder` reference impl ships behind the
+  `[clip]` extra (lazy Torch import — core stays numpy-only).
 
 ### Notes
 - Fusion is deterministic for a fixed config + observation stream (tie-break on
