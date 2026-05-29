@@ -210,6 +210,67 @@ def delete_node(conn: sqlite3.Connection, node_id: int) -> None:
     conn.execute("DELETE FROM nodes WHERE id=?", (node_id,))
 
 
+def _aabb_overlap(amin: Vec3, amax: Vec3, bmin: Vec3, bmax: Vec3, dilation: float) -> bool:
+    return all(not (amax[i] + dilation < bmin[i] or bmax[i] + dilation < amin[i]) for i in range(3))
+
+
+def candidates_near(
+    conn: sqlite3.Connection, bbox_min: Vec3, bbox_max: Vec3, dilation: float
+) -> list[NodeRow]:
+    """Nodes whose bbox overlaps the observation bbox dilated by `dilation`.
+
+    M0/M1 use a linear AABB scan; M1+ may swap in the rtree virtual table.
+    """
+    return [
+        n
+        for n in all_nodes(conn)
+        if _aabb_overlap(bbox_min, bbox_max, n.bbox_min, n.bbox_max, dilation)
+    ]
+
+
+def update_node(
+    conn: sqlite3.Connection,
+    node_id: int,
+    *,
+    label: str,
+    labels: list[tuple[str, float]],
+    confidence: float,
+    centroid: Vec3,
+    bbox_min: Vec3,
+    bbox_max: Vec3,
+    feature: np.ndarray,
+    n_obs: int,
+    t_last: float,
+) -> None:
+    conn.execute(
+        """UPDATE nodes SET
+            label=?, labels_json=?, confidence=?,
+            centroid_x=?, centroid_y=?, centroid_z=?,
+            bbox_min_x=?, bbox_min_y=?, bbox_min_z=?,
+            bbox_max_x=?, bbox_max_y=?, bbox_max_z=?,
+            feature=?, n_obs=?, t_last=?
+           WHERE id=?""",
+        (
+            label,
+            json.dumps(labels),
+            confidence,
+            centroid[0],
+            centroid[1],
+            centroid[2],
+            bbox_min[0],
+            bbox_min[1],
+            bbox_min[2],
+            bbox_max[0],
+            bbox_max[1],
+            bbox_max[2],
+            _vec_to_blob(feature),
+            n_obs,
+            t_last,
+            node_id,
+        ),
+    )
+
+
 def stats(conn: sqlite3.Connection) -> StoreStats:
     def count(t: str) -> int:
         return int(conn.execute(f"SELECT COUNT(*) AS c FROM {t}").fetchone()["c"])

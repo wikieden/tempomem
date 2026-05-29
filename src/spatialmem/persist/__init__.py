@@ -12,7 +12,7 @@ from pathlib import Path
 from .._errors import SchemaMismatchError, StoreError
 
 SCHEMA_VERSION = 1
-CREATOR_VERSION = "0.0.1"
+CREATOR_VERSION = "0.1.0a1"
 
 
 def connect(

@@ -28,8 +28,9 @@ def test_query_semantic_keyword(mem) -> None:
 
 
 def test_query_temporal(mem) -> None:
+    # distinct positions so fusion keeps them separate; this tests recency order
     mem.add_detections([make_det("a", (0, 0, 0), 1, ts=10.0)])
-    mem.add_detections([make_det("b", (0, 0, 0), 2, ts=20.0)])
+    mem.add_detections([make_det("b", (5, 0, 0), 2, ts=20.0)])
     mem.commit()
     res = mem.query("what did I see recently")
     assert res.intent_used == "temporal"

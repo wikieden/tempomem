@@ -21,6 +21,7 @@ from ._errors import (
     SpatialMemError,
     StoreError,
 )
+from .config import FusionConfig, SpatialMemConfig
 from .frame import Detection, Observation
 from .query import NodeHit, QueryResult
 from .query import query as _query
@@ -28,19 +29,21 @@ from .query import recent as _recent
 from .query import spatial as _spatial
 from .store import StoreStats
 
-__version__ = "0.0.1"
+__version__ = "0.1.0a1"
 
 __all__ = [
     "AdapterError",
     "BadDetectionError",
     "CommitStats",
     "Detection",
+    "FusionConfig",
     "IngestError",
     "NodeHit",
     "Observation",
     "QueryError",
     "QueryResult",
     "SchemaMismatchError",
+    "SpatialMemConfig",
     "SpatialMemError",
     "SpatialMemory",
     "StoreError",
@@ -63,10 +66,17 @@ def _now() -> float:
 class SpatialMemory:
     """A persistent spatial scene-graph memory backed by a single .smem file."""
 
-    def __init__(self, conn: sqlite3.Connection, embedding_dim: int, readonly: bool) -> None:
+    def __init__(
+        self,
+        conn: sqlite3.Connection,
+        embedding_dim: int,
+        readonly: bool,
+        config: SpatialMemConfig | None = None,
+    ) -> None:
         self._conn = conn
         self._dim = embedding_dim
         self._readonly = readonly
+        self._cfg = config or SpatialMemConfig()
         self._pending: list[int] = []  # observation ids awaiting fusion
 
     # ---- lifecycle -------------------------------------------------------
@@ -79,9 +89,10 @@ class SpatialMemory:
         embedding_dim: int = 512,
         create: bool = True,
         readonly: bool = False,
+        config: SpatialMemConfig | None = None,
     ) -> SpatialMemory:
         conn = persist.connect(path, embedding_dim=embedding_dim, readonly=readonly, create=create)
-        return cls(conn, embedding_dim, readonly)
+        return cls(conn, embedding_dim, readonly, config)
 
     def close(self) -> None:
         if self._conn is not None:
@@ -145,7 +156,7 @@ class SpatialMemory:
                 bbox_max=(r["bbox_max_x"], r["bbox_max_y"], r["bbox_max_z"]),
                 feature=store._blob_to_vec(r["feature"]),
             )
-            fusion.ingest_observation(self._conn, obs)
+            fusion.ingest_observation(self._conn, obs, self._cfg.fusion)
             n += 1
         self._pending.clear()
         self._conn.commit()
