@@ -32,6 +32,8 @@ from .query import semantic_keyword as _semantic_keyword
 from .query import semantic_vec as _semantic_vec
 from .query import spatial as _spatial
 from .store import StoreStats
+from .verbalize import Verbalizer
+from .verbalize import build_answer_prompt as _build_answer_prompt
 
 __version__ = "0.1.0a1"
 
@@ -53,6 +55,7 @@ __all__ = [
     "SpatialMemory",
     "StoreError",
     "StoreStats",
+    "Verbalizer",
     "__version__",
 ]
 
@@ -78,6 +81,7 @@ class SpatialMemory:
         readonly: bool,
         config: SpatialMemConfig | None = None,
         encoder: Encoder | None = None,
+        verbalizer: Verbalizer | None = None,
     ) -> None:
         if encoder is not None and encoder.dim != embedding_dim:
             raise SchemaMismatchError(
@@ -88,6 +92,7 @@ class SpatialMemory:
         self._readonly = readonly
         self._cfg = config or SpatialMemConfig()
         self._encoder = encoder
+        self._verbalizer = verbalizer
         self._pending: list[int] = []  # observation ids awaiting fusion
 
     # ---- lifecycle -------------------------------------------------------
@@ -102,9 +107,10 @@ class SpatialMemory:
         readonly: bool = False,
         config: SpatialMemConfig | None = None,
         encoder: Encoder | None = None,
+        verbalizer: Verbalizer | None = None,
     ) -> SpatialMemory:
         conn = persist.connect(path, embedding_dim=embedding_dim, readonly=readonly, create=create)
-        return cls(conn, embedding_dim, readonly, config, encoder)
+        return cls(conn, embedding_dim, readonly, config, encoder, verbalizer)
 
     def close(self) -> None:
         if self._conn is not None:
@@ -203,6 +209,21 @@ class SpatialMemory:
             return _semantic_vec(self._conn, qv, k=k)
         return _semantic_keyword(self._conn, text, k=k)
 
+    def answer(self, query: str, *, k: int = 8, verbalizer: Verbalizer | None = None) -> str:
+        """Retrieve relevant nodes, serialize a scene prompt, and ask a BYO LLM.
+
+        Pass `verbalizer=` or set one at open(). Raises if none is configured.
+        """
+        vb = verbalizer or self._verbalizer
+        if vb is None:
+            raise QueryError(
+                "answer() needs a verbalizer: open(verbalizer=...) or answer(verbalizer=...)"
+            )
+        hits = self.semantic(query, k=k)
+        scene = serialize.to_prompt(self._conn)
+        prompt = _build_answer_prompt(query, scene, hits)
+        return vb.complete(prompt)
+
     def spatial(
         self,
         *,
@@ -227,6 +248,24 @@ class SpatialMemory:
     def forget(self, node_id: int) -> None:
         store.delete_node(self._conn, node_id)
         self._conn.commit()
+
+    def decay(
+        self, *, half_life_days: float = 30.0, min_conf: float = 0.1, now: float | None = None
+    ) -> tuple[int, int]:
+        """Age-decay node confidence; prune nodes that fall below `min_conf`.
+
+        Returns (n_decayed, n_pruned). `now` defaults to wall-clock time.
+        """
+        if self._readonly:
+            raise StoreError("store opened read-only")
+        result = store.decay_and_prune(
+            self._conn,
+            now=now if now is not None else _now(),
+            half_life_days=half_life_days,
+            min_conf=min_conf,
+        )
+        self._conn.commit()
+        return result
 
     def stats(self) -> StoreStats:
         return store.stats(self._conn)

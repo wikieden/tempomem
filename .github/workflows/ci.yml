@@ -33,3 +33,13 @@ jobs:
       - run: pytest -q --cov=spatialmem --cov-report=term-missing
       - run: python examples/01_quickstart.py
       - run: spatialmem --version
+
+  clip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -e ".[clip,dev]"
+      - run: pytest -q tests/unit/test_clip_smoke.py

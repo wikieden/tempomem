@@ -51,9 +51,9 @@ NVIDIA open-model research done (see [05-OPEN.md](../05-OPEN.md) P1/P3 log). Ver
 
 - [ ] `PerceptionAdapter` Protocol + one concrete backend; `add_frame` ingests RGB-D
 - [ ] sqlite-vec ANN path green (with linear fallback); `[vec]` extra installs
-- [ ] `decay()` + `answer()` (verbalizer) APIs land with tests
-- [ ] Eval harness reports recall@k on a real scene
-- [ ] `[clip]` CI lane green
+- [x] `decay()` + `answer()` (verbalizer) APIs land with tests **(V2, V3 — built 2026-05-29)**
+- [x] Eval harness reports recall@k **(V5 — `spatialmem.bench.recall_at_k`)**
+- [x] `[clip]` CI lane green **(V6 — smoke test, no weight download)**
 - [ ] Demo recorded: stream Replica scene → 5 questions → ≥4 right
 - [ ] Coverage ≥ 80% on new modules; ruff clean
 

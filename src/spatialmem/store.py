@@ -210,6 +210,35 @@ def delete_node(conn: sqlite3.Connection, node_id: int) -> None:
     conn.execute("DELETE FROM nodes WHERE id=?", (node_id,))
 
 
+def set_confidence(conn: sqlite3.Connection, node_id: int, confidence: float) -> None:
+    conn.execute("UPDATE nodes SET confidence=? WHERE id=?", (confidence, node_id))
+
+
+def decay_and_prune(
+    conn: sqlite3.Connection, *, now: float, half_life_days: float, min_conf: float
+) -> tuple[int, int]:
+    """Age-decay node confidence and prune below a floor.
+
+    conf' = conf * 0.5 ** (age_days / half_life_days), age from t_last.
+    Returns (n_decayed, n_pruned). Pure read+write, caller commits.
+    """
+    if half_life_days <= 0:
+        raise ValueError("half_life_days must be > 0")
+    decayed = 0
+    pruned = 0
+    for n in all_nodes(conn):
+        age_days = max(0.0, (now - n.t_last) / 86400.0)
+        factor = 0.5 ** (age_days / half_life_days)
+        new_conf = n.confidence * factor
+        if new_conf < min_conf:
+            delete_node(conn, n.id)
+            pruned += 1
+        elif factor < 1.0:
+            set_confidence(conn, n.id, new_conf)
+            decayed += 1
+    return decayed, pruned
+
+
 def _aabb_overlap(amin: Vec3, amax: Vec3, bmin: Vec3, bmax: Vec3, dilation: float) -> bool:
     return all(not (amax[i] + dilation < bmin[i] or bmax[i] + dilation < amin[i]) for i in range(3))
 

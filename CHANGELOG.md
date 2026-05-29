@@ -4,6 +4,26 @@ All notable changes to SpatialMem are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); versions follow SemVer
 (pre-1.0, the API may change between minor releases).
 
+## [Unreleased] — M2 in progress
+
+### Added
+- **`decay(half_life_days, min_conf)`** — age-decays node confidence
+  (`conf' = conf · 0.5^(age/half_life)` from `t_last`) and prunes nodes below
+  the floor. Memory hygiene for long-lived stores.
+- **`answer(query, verbalizer=...)`** — retrieve → serialize scene prompt →
+  BYO LLM. `Verbalizer` protocol (wrap OpenAI / Anthropic / Ollama); no bundled
+  model or key. `SpatialMemory.open(verbalizer=...)` or per-call.
+- **`spatialmem.bench.recall_at_k`** — lightweight retrieval eval over scripted
+  `(query, expected_label)` cases; powers the M2 demo metric.
+- **`[clip]` CI lane** — installs the extra and smoke-tests `OpenClipEncoder`
+  shape/dim against real Torch (random init, no weight download).
+
+### Notes
+- Perception backend decided: `PerceptionAdapter` protocol + ConceptGraphs
+  (SAM/GroundingDINO/OpenCLIP) as first adapter; no NVIDIA model as default
+  (license traps). See `docs/05-OPEN.md` P1–P3.
+- Still in M2: sqlite-vec ANN (V1), split detection (V4), ConceptGraphs adapter (P-tasks).
+
 ## [0.1.0a1] - 2026-05-29
 
 ### Added
