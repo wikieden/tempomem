@@ -42,7 +42,7 @@ Live design decisions not yet locked. Each has an owner-decision deadline (the m
 | # | Question | Why it matters | Decide by |
 |---|---|---|---|
 | B1 | Flip public at M0 (docs only) or M1 (runnable)? | Currently private. Empty-ish repo public = weak first impression | M1 |
-| B2 | Name conflict check — is "SpatialMem" / "spatialmem" clear on PyPI + GitHub? | Rename later is costly once cited | M0 |
+| ~~B2~~ | ~~Name conflict check~~ — **resolved 2026-05-29, see decision log** | | done |
 | B3 | Mem0 — reach out for partnership before or after launch? | Pre-launch goodwill vs showing traction first | M3 |
 | B4 | License Apache-2.0 confirmed vs MIT (eMEM is MIT)? | Patent grant (Apache) vs maximal permissiveness (MIT) | M0 |
 
@@ -53,3 +53,4 @@ Live design decisions not yet locked. Each has an owner-decision deadline (the m
 | 2026-05-29 | — | MVP is detections-in only, perception deferred to M2 | Win the API first; perception install pain must not gate "hello world" |
 | 2026-05-29 | — | Single `.smem` SQLite file as the unit | Portable, diffable, no external services |
 | 2026-05-29 | — | Repo private until runnable (M0/M1) | "private first" — avoid weak empty-repo first impression |
+| 2026-05-29 | B2 | Name "spatialmem" confirmed clear | PyPI free (`spatialmem`/`spatial-mem`/`spatialmemory` all 404); GitHub matches are unrelated (Julia `.jl` 1★, rest 0★ dormant) — no Python pkg or brand collision |
