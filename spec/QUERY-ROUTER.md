@@ -18,16 +18,18 @@ Order:
 ## Retrievers
 
 ### `semantic(text, k)`
-- Embed `text` with the same encoder used for node features (must agree on dim).
-- `sqlite-vec` ANN over `node_features`. Linear scan when `n_nodes < 10_000`.
-- Rerank top 4k with exact cosine to remove ANN noise.
+- Embed `text` with the configured `Encoder` (must agree on the store's dim).
+- **As built (M2):** `node_vec` sqlite-vec ANN when the `[vec]` extra is active,
+  else a linear cosine scan over `nodes.feature`. Without an encoder, `semantic`
+  falls back to label keyword match. (ANN rerank: future.)
 
-### `spatial(near, radius | inside_bbox, k)`
-- R-tree range query on `node_geom`.
-- Sort by Euclidean distance to `near`.
+### `spatial(near, radius, k)`
+- **As built (M2):** linear centroid-distance scan over `nodes`, filtered by
+  `radius`, sorted by Euclidean distance to `near`. (R-tree `node_geom` and
+  `inside_bbox`: planned.)
 
-### `temporal(n, episode)`
-- Index scan on `nodes(t_last DESC)` filtered by episode.
+### `temporal(n)`
+- Index scan on `nodes(t_last DESC)`. (Per-episode filter: planned.)
 
 ### `hybrid` (used when intent set has ≥ 2)
 - Slot-fill: subject (semantic) + anchor (semantic) + relation (lexical).

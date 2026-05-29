@@ -60,28 +60,31 @@ Atomic SQL transaction. For node `c*` and incoming observation `o`:
 - `c*.confidence ← min(1, c*.confidence + (1 - c*.confidence) * o.confidence * cfg.conf_gain)`
 - `c*.t_last ← max(c*.t_last, o.ts)`
 - Insert `node_obs(c*.id, o.id, o.ts)`
-- Update `node_geom` R-tree, `node_features` vec table.
+- Update the `node_vec` index (when the `[vec]` extra is active). *(As built: no `node_geom` R-tree — proximity is a linear AABB scan; see SCHEMA.md.)*
 
-## Split Detection (post-commit, optional v0)
+## Split Detection
 
-After each commit, scan nodes whose bbox volume grew > `cfg.split_volume_x` since previous commit. For each, run 3-means on its observation point cloud:
+**As built (M2, V4):** exposed as `mem.resplit()` — an explicit maintenance
+sweep (not auto post-commit). For each node it runs a deterministic 2-means
+(seeded by the farthest observation pair) over member-observation centroids. A
+node splits into two when both clusters have ≥ `cfg.min_split_obs` members and
+their centroids are separated by ≥ `cfg.tau_split_m`; member `node_obs` rows are
+reassigned and the original node deleted. Returns `(nodes_split, new_nodes)`.
 
-- If silhouette score > `cfg.split_silhouette`, split into 2 nodes; reassign `node_obs` rows.
-
-Disabled by default in M1; enabled in M2 once we have benchmark coverage.
+Future: silhouette-scored k>2 splits and auto-trigger on bbox-volume growth.
 
 ## Decay
 
-`mem.decay(half_life_s)` runs:
+**As built (M2, V2):** `mem.decay(half_life_days=30.0, min_conf=0.1, now=None)`:
 
 ```
 for node n:
-    age = now - n.t_last
-    n.confidence *= 0.5 ** (age / half_life_s)
-    if n.confidence < floor: forget(n)
+    age_days = (now - n.t_last) / 86400
+    n.confidence *= 0.5 ** (age_days / half_life_days)
+    if n.confidence < min_conf: forget(n)   # else persist decayed confidence
 ```
 
-Edges decay with the same formula on `edge.confidence`.
+Returns `(n_decayed, n_pruned)`. Edge decay is future work.
 
 ## Determinism
 

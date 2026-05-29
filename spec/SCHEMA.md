@@ -44,13 +44,17 @@ Required keys: `schema_version` (int as text), `embedding_dim`, `created_at`, `c
 | center_x, center_y, center_z | REAL | meters |
 | bbox_min_x, bbox_min_y, bbox_min_z | REAL | |
 | bbox_max_x, bbox_max_y, bbox_max_z | REAL | |
+| feature | BLOB | float32 vec(D), L2-normalized |
 | mask_rle | BLOB | nullable |
 | aux | TEXT | JSON |
 
 Index: `(episode_id, ts)`.
 
-### `obs_features` *(virtual, sqlite-vec)*
-`obs_id → vec(D)`, D = `meta.embedding_dim`.
+### `obs_features` *(planned)*
+**As built (M2):** observation features are stored inline as the
+`observations.feature` BLOB above — there is no separate observation vector
+index (observations are not ANN-searched; only node features are). A
+sqlite-vec table for observations remains optional/future.
 
 ### `nodes`
 | col | type | note |
@@ -65,15 +69,22 @@ Index: `(episode_id, ts)`.
 | n_obs | INTEGER | observation count |
 | t_first | REAL | |
 | t_last | REAL | |
+| feature | BLOB | float32 vec(D), L2-normalized centroid of member obs |
 | parent_id | INTEGER FK NULL | hierarchical containment |
 
 Index: `(type)`, `(label)`, `(t_last DESC)`.
 
-### `node_features` *(virtual, sqlite-vec)*
-`node_id → vec(D)` (centroid of constituent observation features, L2-normalized).
+### `node_vec` *(virtual, sqlite-vec, optional)*
+**As built (M2, V1):** `node_vec USING vec0(emb float[D] distance_metric=cosine)`,
+`rowid = node_id`. Created only when the `[vec]` extra loads; mirrors
+`nodes.feature` (the BLOB is the source of truth, this is a rebuildable index),
+maintained on insert/update/delete. `semantic_vec` uses it when present, else a
+linear cosine scan over `nodes.feature`.
 
-### `node_geom` *(virtual, rtree)*
-`node_id → (xmin, xmax, ymin, ymax, zmin, zmax)`.
+### `node_geom` *(planned)*
+**As built (M2):** proximity search (`candidates_near`, `spatial`) uses a linear
+AABB / centroid-distance scan over `nodes`, not an R-tree. Fine below ~10k
+nodes; an rtree virtual table is a later optimization.
 
 ### `edges`
 | col | type | note |
