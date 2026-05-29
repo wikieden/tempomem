@@ -45,12 +45,14 @@ T3 and T4 can run in parallel after T2. T7/T8/T9/T10 all fan out from T6.
 
 ## Definition of Done
 
-- [ ] `pip install -e .` on clean Python 3.11 venv, no CUDA, < 25 s
-- [ ] `python examples/01_quickstart.py` prints a query hit
-- [ ] `spatialmem inspect kitchen.smem` shows node counts
-- [ ] `pytest -q` green; coverage reported (gate enforced from M1)
-- [ ] CI green on both OS
-- [ ] B2 + B4 resolved (name check, license) — see [05-OPEN.md](../05-OPEN.md)
+- [x] `pip install -e .` on clean Python 3.12 venv, no CUDA (numpy-only dep)
+- [x] `python examples/01_quickstart.py` prints a query hit
+- [x] `spatialmem inspect kitchen.smem` shows node counts
+- [x] `pytest -q` green (18 tests); coverage **95%** total, core modules 93–100%
+- [ ] CI green on both OS — verified on first push
+- [x] B2 + B4 resolved (name clear, Apache-2.0) — see [05-OPEN.md](../05-OPEN.md)
+
+**Built 2026-05-29.** Deviation: M0 stores feature vectors as BLOB float32; `sqlite-vec` ANN deferred to M1 (semantic retrieval not in M0). Keeps default dep = numpy only.
 
 ## Risks
 

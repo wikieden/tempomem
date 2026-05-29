@@ -54,3 +54,5 @@ Live design decisions not yet locked. Each has an owner-decision deadline (the m
 | 2026-05-29 | — | Single `.smem` SQLite file as the unit | Portable, diffable, no external services |
 | 2026-05-29 | — | Repo private until runnable (M0/M1) | "private first" — avoid weak empty-repo first impression |
 | 2026-05-29 | B2 | Name "spatialmem" confirmed clear | PyPI free (`spatialmem`/`spatial-mem`/`spatialmemory` all 404); GitHub matches are unrelated (Julia `.jl` 1★, rest 0★ dormant) — no Python pkg or brand collision |
+| 2026-05-29 | B4 | License = Apache-2.0 | Patent grant matters for a library cited by robotics/commercial stacks; eMEM's MIT is more permissive but offers no patent protection |
+| 2026-05-29 | S3(M0) | M0 stores vectors as BLOB float32, not sqlite-vec | Keeps default dep = numpy only; green CI on 3 OS×Py with no native extension; semantic ANN isn't in M0. sqlite-vec migration is an M1 task. S2/S4 still open |
