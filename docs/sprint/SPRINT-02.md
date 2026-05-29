@@ -4,9 +4,11 @@
 
 **Exit (from [roadmap](../03-ROADMAP.md)):** "Stream Replica scene, ask 5 questions, get 4 right" demo recorded.
 
-## Pending decision — perception backend (BLOCKS P-tasks)
+## DECIDED 2026-05-29 — perception backend = Option C (Protocol + ConceptGraphs first)
 
-`add_frame` needs a backend that turns RGB-D → open-vocab 3D detections (label + 3D bbox + feature). Two paths, decision gated on the in-flight NVIDIA open-model research:
+NVIDIA open-model research done (see [05-OPEN.md](../05-OPEN.md) P1/P3 log). Verdict: **no NVIDIA model fits as a bundled default** — FoundationStereo/Pose/RADIO are non-commercial (NSCL), Isaac Perceptor is proprietary, NV-CLIP is enterprise-only, C-RADIO is commercial-OK but has no native text encoder (breaks our text-query ANN). So: **Option C** — define `PerceptionAdapter` Protocol (P0), ship **ConceptGraphs (SAM + Grounding DINO + OpenCLIP, Apache/MIT)** as the first concrete adapter, pinned + soft-forked. NVIDIA pieces revisited later: nvblox geometry (M3/M4), C-RADIO `[radio]` encoder (post-M2, needs text-space prototype), Cosmos-Reason2 (named BYO verbalizer in docs). **P-tasks unblocked.**
+
+`add_frame` needs a backend that turns RGB-D → open-vocab 3D detections (label + 3D bbox + feature). Options considered:
 
 | Option | Backend | License | Install burden | Notes |
 |---|---|---|---|---|
@@ -14,7 +16,7 @@
 | **B** | NVIDIA stack (nvblox geometry + RADIO/NV-CLIP features + open-vocab seg) | ⚠️ many NVIDIA model licenses are non-commercial / eval-only | CUDA-only | research deciding fit + license traps |
 | **C** | Hybrid: our adapter Protocol, ship ConceptGraphs first, NVIDIA as optional extra | per-component | mixed | most flexible, most work |
 
-→ **Decide after NVIDIA research lands** (open question P1/P2/P3 in [05-OPEN.md](../05-OPEN.md)). Default lean: **C** — define a `PerceptionAdapter` Protocol now (backend-agnostic), implement whichever wins as the first concrete adapter.
+→ **Decided: C** (above). `PerceptionAdapter` Protocol + ConceptGraphs first.
 
 ## Task Breakdown
 
