@@ -11,6 +11,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from . import vec as _vec
+
 Vec3 = tuple[float, float, float]
 
 
@@ -146,7 +148,9 @@ def insert_node(
             parent_id,
         ),
     )
-    return int(cur.lastrowid)
+    node_id = int(cur.lastrowid)
+    _vec.upsert(conn, node_id, feature)
+    return node_id
 
 
 def link_node_obs(conn: sqlite3.Connection, node_id: int, obs_id: int, ts: float) -> None:
@@ -208,6 +212,7 @@ def delete_node(conn: sqlite3.Connection, node_id: int) -> None:
     conn.execute("DELETE FROM node_obs WHERE node_id=?", (node_id,))
     conn.execute("DELETE FROM edges WHERE src=? OR dst=?", (node_id, node_id))
     conn.execute("DELETE FROM nodes WHERE id=?", (node_id,))
+    _vec.delete(conn, node_id)
 
 
 def set_confidence(conn: sqlite3.Connection, node_id: int, confidence: float) -> None:
@@ -298,6 +303,7 @@ def update_node(
             node_id,
         ),
     )
+    _vec.upsert(conn, node_id, feature)
 
 
 def stats(conn: sqlite3.Connection) -> StoreStats:

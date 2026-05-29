@@ -43,3 +43,13 @@ jobs:
           python-version: "3.11"
       - run: pip install -e ".[clip,dev]"
       - run: pytest -q tests/unit/test_clip_smoke.py
+
+  vec:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -e ".[vec,dev]"
+      - run: pytest -q tests/unit/test_vec.py

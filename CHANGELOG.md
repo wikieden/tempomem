@@ -17,12 +17,16 @@ All notable changes to SpatialMem are documented here. Format follows
   `(query, expected_label)` cases; powers the M2 demo metric.
 - **`[clip]` CI lane** — installs the extra and smoke-tests `OpenClipEncoder`
   shape/dim against real Torch (random init, no weight download).
+- **sqlite-vec ANN** (`[vec]` extra) — a `node_vec` vec0 cosine index mirrors
+  node features, maintained on insert/update/delete and queried by
+  `semantic_vec`. Falls back to the linear scan when the extension is absent;
+  the BLOB feature stays the source of truth. `[vec]` CI lane added.
 
 ### Notes
 - Perception backend decided: `PerceptionAdapter` protocol + ConceptGraphs
   (SAM/GroundingDINO/OpenCLIP) as first adapter; no NVIDIA model as default
   (license traps). See `docs/05-OPEN.md` P1–P3.
-- Still in M2: sqlite-vec ANN (V1), split detection (V4), ConceptGraphs adapter (P-tasks).
+- Still in M2: split detection (V4), ConceptGraphs adapter (P-tasks).
 
 ## [0.1.0a1] - 2026-05-29
 

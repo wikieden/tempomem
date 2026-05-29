@@ -97,10 +97,20 @@ def spatial(
 def semantic_vec(conn: sqlite3.Connection, qvec: np.ndarray, *, k: int = 10) -> list[NodeHit]:
     """Cosine similarity of a query embedding against node feature centroids.
 
-    M1 uses a linear scan over BLOB features (fine < 10k nodes); sqlite-vec ANN
-    is a later milestone. qvec is assumed L2-normalized.
+    Uses the sqlite-vec ANN index (`node_vec`) when the `[vec]` extra is active;
+    otherwise a linear scan over BLOB features (fine < 10k nodes). qvec is
+    assumed L2-normalized.
     """
+    from .. import vec
+
     q = np.asarray(qvec, dtype=np.float32).reshape(-1)
+    if vec.enabled(conn):
+        hits: list[NodeHit] = []
+        for nid, score in vec.search(conn, q, k):
+            n = store.get_node(conn, nid)
+            if n is not None:
+                hits.append(_hit(n, score))
+        return hits
     scored: list[tuple[float, store.NodeRow]] = []
     for n in store.all_nodes(conn):
         f = store.node_feature(conn, n.id)

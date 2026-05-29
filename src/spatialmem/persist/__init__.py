@@ -34,6 +34,10 @@ def connect(
         _check_dim(conn, embedding_dim)
     else:
         _ensure_schema(conn, embedding_dim)
+
+    from .. import vec
+
+    vec.try_enable(conn, embedding_dim, readonly)
     return conn
 
 
