@@ -19,7 +19,12 @@ class SpatialMemory:
     def open(cls, path: str | os.PathLike, *,
              embedding_dim: int = 512,
              create: bool = True,
-             readonly: bool = False) -> "SpatialMemory": ...
+             readonly: bool = False,
+             config: SpatialMemConfig | None = None,
+             encoder: Encoder | None = None,           # semantic query / answer
+             verbalizer: Verbalizer | None = None,     # answer()
+             adapter: PerceptionAdapter | None = None  # add_frame()
+             ) -> "SpatialMemory": ...
 
     def close(self) -> None: ...
     def __enter__(self) -> "SpatialMemory": ...
@@ -35,11 +40,13 @@ def add_detections(self, dets: Sequence[Detection],
                    *, episode: str | None = None) -> List[int]:
     """Insert observations. Returns assigned observation ids. Non-blocking."""
 
-def add_frame(self, rgb: np.ndarray, depth: np.ndarray,
-              pose: np.ndarray, intrinsics: np.ndarray,
-              ts: float | None = None,
-              *, episode: str | None = None) -> int:
-    """Run configured ingest adapter. Returns frame id. Non-blocking."""
+def add_frame(self, rgb: np.ndarray, depth: np.ndarray, pose: np.ndarray,
+              *, intrinsics: np.ndarray | None = None,
+              adapter: PerceptionAdapter | None = None,
+              episode: str | None = None) -> list[int]:
+    """Route a posed RGB-D frame through a PerceptionAdapter to detections,
+    then add_detections. Adapter from `adapter=` or open(adapter=).
+    Returns assigned observation ids. Non-blocking (still needs commit())."""
 
 def commit(self, *, timeout_s: float = 30.0) -> CommitStats:
     """Flush queued observations through the arbiter and fsync."""
@@ -65,20 +72,26 @@ class Detection:
 
 ```python
 def query(self, text: str, *, k: int = 10,
-          intent: Literal["auto", "semantic", "spatial", "temporal"] = "auto",
-          k_hops: int = 0) -> QueryResult: ...
+          intent: Literal["auto", "semantic", "spatial", "temporal"] = "auto"
+          ) -> QueryResult: ...
+    # "auto" routes by keyword heuristic; semantic/hybrid use the encoder when
+    # configured, else label-keyword fallback. (k_hops subgraph: planned.)
 
 def semantic(self, text: str, *, k: int = 10) -> list[NodeHit]: ...
+    # encoder-backed cosine when open(encoder=...); else label keyword match.
+
+def answer(self, query: str, *, k: int = 8,
+           verbalizer: Verbalizer | None = None) -> str: ...
+    # retrieve -> serialize(prompt) -> BYO Verbalizer. Raises QueryError if none.
+
 def spatial(self, *, near: tuple[float,float,float] | None = None,
             radius: float | None = None,
-            inside_bbox: tuple[tuple[float,float,float], tuple[float,float,float]] | None = None,
-            k: int = 100) -> list[NodeHit]: ...
-def recent(self, *, n: int = 10, episode: str | None = None) -> list[NodeHit]: ...
+            k: int = 100) -> list[NodeHit]: ...                 # inside_bbox: planned
+def recent(self, *, n: int = 10) -> list[NodeHit]: ...           # episode filter: planned
 
-def serialize(self, *, format: Literal["prompt", "json", "dot"] = "prompt",
+def serialize(self, *, format: Literal["prompt", "json"] = "prompt",
               root: int | None = None,
-              k_hops: int = 2,
-              max_tokens: int | None = None) -> str: ...
+              k_hops: int = 2) -> str: ...                       # "dot"/max_tokens: planned
 ```
 
 Return shapes:
@@ -98,32 +111,63 @@ class NodeHit:
 class QueryResult:
     nodes: list[NodeHit]
     intent_used: Literal["semantic", "spatial", "temporal", "hybrid"]
-    subgraph: SceneSubgraph | None      # populated when k_hops > 0
-    debug: Mapping[str, JsonValue]
+    debug: Mapping[str, JsonValue]      # e.g. {"text": ..., "encoder": True}
+    # subgraph (k_hops expansion): planned
 ```
 
 ## Lifecycle / Maintenance
 
 ```python
 def forget(self, node_id: int) -> None: ...
-def decay(self, *, half_life_s: float, floor: float = 0.0) -> int: ...
+
+def decay(self, *, half_life_days: float = 30.0, min_conf: float = 0.1,
+          now: float | None = None) -> tuple[int, int]: ...
+    # conf' = conf * 0.5 ** (age_days / half_life_days); prune below min_conf.
+    # Returns (n_decayed, n_pruned).
+
+def resplit(self) -> tuple[int, int]: ...
+    # Split nodes whose member observations form two separated clusters
+    # (config tau_split_m / min_split_obs). Returns (nodes_split, new_nodes).
+
 def stats(self) -> StoreStats: ...
-def dump(self, path: str | os.PathLike, *, format: Literal["json"] = "json") -> None: ...
 ```
+
+JSON export is via `serialize(format="json")`. A standalone `dump()` is planned.
 
 ## Configuration
 
 `SpatialMemory.open(..., config=SpatialMemConfig(...))`. All thresholds live on the config object, never as method kwargs:
 
 ```python
-@dataclass
+@dataclass(frozen=True, slots=True)
 class SpatialMemConfig:
     fusion: FusionConfig = field(default_factory=FusionConfig)
-    query:  QueryConfig  = field(default_factory=QueryConfig)
-    persist: PersistConfig = field(default_factory=PersistConfig)
+    # query / persist sub-configs: planned
 ```
 
-Loaded from `~/.config/spatialmem/config.toml` if present; overridable via env (`SPATIALMEM_*`).
+`FusionConfig` carries all fusion thresholds (weights, `tau_merge`, `tau_obs`,
+`tau_split_m`, `min_split_obs`, `centroid_alpha`, …). TOML/env loading is planned.
+
+## Pluggable backends (protocols)
+
+Duck-typed; supply any object matching the shape. Core stays numpy-only.
+
+```python
+class Encoder(Protocol):                 # spatialmem.encoders
+    @property
+    def dim(self) -> int: ...
+    def encode_text(self, texts: Sequence[str]) -> np.ndarray: ...  # (N, dim) L2-norm
+
+class Verbalizer(Protocol):              # spatialmem.verbalize
+    def complete(self, prompt: str) -> str: ...
+
+class PerceptionAdapter(Protocol):       # spatialmem.perception
+    def process_frame(self, rgb, depth, pose,
+                      intrinsics=None) -> list[Detection]: ...
+```
+
+Reference impls: `OpenClipEncoder` (`[clip]` extra). ConceptGraphs perception
+adapter is WIP (`[perception]`, CUDA).
 
 ## Errors
 
