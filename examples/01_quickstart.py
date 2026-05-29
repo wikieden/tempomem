@@ -60,8 +60,7 @@ def main() -> None:
         assert hits.nodes, "expected at least one hit for 'mug'"
         top = hits.nodes[0]
         print(
-            f"query 'mug' -> #{top.id} '{top.label}' @ {top.center_xyz} "
-            f"(intent={hits.intent_used})"
+            f"query 'mug' -> #{top.id} '{top.label}' @ {top.center_xyz} (intent={hits.intent_used})"
         )
 
         print("\n--- prompt serialization ---")
