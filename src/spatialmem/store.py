@@ -12,6 +12,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from . import vec as _vec
+from .frame import Observation
 
 Vec3 = tuple[float, float, float]
 
@@ -213,6 +214,36 @@ def delete_node(conn: sqlite3.Connection, node_id: int) -> None:
     conn.execute("DELETE FROM edges WHERE src=? OR dst=?", (node_id, node_id))
     conn.execute("DELETE FROM nodes WHERE id=?", (node_id,))
     _vec.delete(conn, node_id)
+
+
+def observations_for_node(conn: sqlite3.Connection, node_id: int) -> list[Observation]:
+    """Member observations of a node (via node_obs), as Observation value objects."""
+    rows = conn.execute(
+        """SELECT o.* FROM observations o
+           JOIN node_obs no ON no.obs_id = o.id
+           WHERE no.node_id = ? ORDER BY o.id""",
+        (node_id,),
+    ).fetchall()
+    return [
+        Observation(
+            id=int(r["id"]),
+            episode_id=int(r["episode_id"]),
+            ts=float(r["ts"]),
+            label=r["label"],
+            confidence=float(r["confidence"]),
+            center_xyz=(r["center_x"], r["center_y"], r["center_z"]),
+            bbox_min=(r["bbox_min_x"], r["bbox_min_y"], r["bbox_min_z"]),
+            bbox_max=(r["bbox_max_x"], r["bbox_max_y"], r["bbox_max_z"]),
+            feature=_blob_to_vec(r["feature"]),
+        )
+        for r in rows
+    ]
+
+
+def relink_observation(conn: sqlite3.Connection, node_id: int, obs_id: int, ts: float) -> None:
+    """Move an obs link to a different node (used by split)."""
+    conn.execute("DELETE FROM node_obs WHERE obs_id=?", (obs_id,))
+    conn.execute("INSERT INTO node_obs(node_id, obs_id, ts) VALUES(?,?,?)", (node_id, obs_id, ts))
 
 
 def set_confidence(conn: sqlite3.Connection, node_id: int, confidence: float) -> None:

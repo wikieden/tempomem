@@ -11,6 +11,8 @@ import sqlite3
 import time
 from dataclasses import dataclass
 
+import numpy as np
+
 from . import fusion, persist, serialize, store
 from ._errors import (
     AdapterError,
@@ -24,6 +26,7 @@ from ._errors import (
 from .config import FusionConfig, SpatialMemConfig
 from .encoders import Encoder
 from .frame import Detection, Observation
+from .perception import PerceptionAdapter
 from .query import NodeHit, QueryResult
 from .query import detect_intent as _detect_intent
 from .query import query as _query
@@ -47,6 +50,7 @@ __all__ = [
     "IngestError",
     "NodeHit",
     "Observation",
+    "PerceptionAdapter",
     "QueryError",
     "QueryResult",
     "SchemaMismatchError",
@@ -82,6 +86,7 @@ class SpatialMemory:
         config: SpatialMemConfig | None = None,
         encoder: Encoder | None = None,
         verbalizer: Verbalizer | None = None,
+        adapter: PerceptionAdapter | None = None,
     ) -> None:
         if encoder is not None and encoder.dim != embedding_dim:
             raise SchemaMismatchError(
@@ -93,6 +98,7 @@ class SpatialMemory:
         self._cfg = config or SpatialMemConfig()
         self._encoder = encoder
         self._verbalizer = verbalizer
+        self._adapter = adapter
         self._pending: list[int] = []  # observation ids awaiting fusion
 
     # ---- lifecycle -------------------------------------------------------
@@ -108,9 +114,10 @@ class SpatialMemory:
         config: SpatialMemConfig | None = None,
         encoder: Encoder | None = None,
         verbalizer: Verbalizer | None = None,
+        adapter: PerceptionAdapter | None = None,
     ) -> SpatialMemory:
         conn = persist.connect(path, embedding_dim=embedding_dim, readonly=readonly, create=create)
-        return cls(conn, embedding_dim, readonly, config, encoder, verbalizer)
+        return cls(conn, embedding_dim, readonly, config, encoder, verbalizer, adapter)
 
     def close(self) -> None:
         if self._conn is not None:
@@ -155,6 +162,28 @@ class SpatialMemory:
             obs_ids.append(oid)
             self._pending.append(oid)
         return obs_ids
+
+    def add_frame(
+        self,
+        rgb: np.ndarray,
+        depth: np.ndarray,
+        pose: np.ndarray,
+        *,
+        intrinsics: np.ndarray | None = None,
+        adapter: PerceptionAdapter | None = None,
+        episode: str | None = None,
+    ) -> list[int]:
+        """Run a posed RGB-D frame through a PerceptionAdapter, then ingest.
+
+        Pass `adapter=` or set one at open(). Detections still require commit().
+        """
+        ad = adapter or self._adapter
+        if ad is None:
+            raise IngestError(
+                "add_frame needs a PerceptionAdapter: open(adapter=...) or add_frame(adapter=...)"
+            )
+        dets = ad.process_frame(rgb, depth, pose, intrinsics)
+        return self.add_detections(dets, episode=episode)
 
     def commit(self, *, timeout_s: float = 30.0) -> CommitStats:
         t0 = _now()
@@ -266,6 +295,25 @@ class SpatialMemory:
         )
         self._conn.commit()
         return result
+
+    def resplit(self) -> tuple[int, int]:
+        """Scan all nodes; split any whose member observations form two
+        separated clusters (config `tau_split_m` / `min_split_obs`).
+
+        Returns (nodes_split, new_nodes_created).
+        """
+        if self._readonly:
+            raise StoreError("store opened read-only")
+        node_ids = [n.id for n in store.all_nodes(self._conn)]
+        split = 0
+        created = 0
+        for nid in node_ids:
+            new = fusion.split_node(self._conn, nid, self._cfg.fusion)
+            if new:
+                split += 1
+                created += len(new)
+        self._conn.commit()
+        return split, created
 
     def stats(self) -> StoreStats:
         return store.stats(self._conn)

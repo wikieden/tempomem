@@ -49,7 +49,8 @@ NVIDIA open-model research done (see [05-OPEN.md](../05-OPEN.md) P1/P3 log). Ver
 
 ## Definition of Done
 
-- [ ] `PerceptionAdapter` Protocol + one concrete backend; `add_frame` ingests RGB-D
+- [x] `PerceptionAdapter` Protocol + `add_frame` ingests RGB-D **(P0/P2 — stub-tested)**; concrete ConceptGraphs adapter (P1) pending CUDA dev box
+- [x] split detection — `resplit()` **(V4 — built 2026-05-29)**
 - [x] sqlite-vec ANN path green (with linear fallback); `[vec]` extra installs **(V1 — built 2026-05-29)**
 - [x] `decay()` + `answer()` (verbalizer) APIs land with tests **(V2, V3 — built 2026-05-29)**
 - [x] Eval harness reports recall@k **(V5 — `spatialmem.bench.recall_at_k`)**

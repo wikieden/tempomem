@@ -127,6 +127,96 @@ def _new_node(conn: sqlite3.Connection, obs: Observation) -> int:
     return node_id
 
 
+def _kmeans2(pts: np.ndarray) -> np.ndarray:
+    """Deterministic 2-means on 3D points. Returns a 0/1 label per point.
+
+    Seeded with the farthest pair so the result does not depend on order or
+    randomness. Ties (equidistant) assign to cluster 0.
+    """
+    n = len(pts)
+    best = (0, 1)
+    best_d = -1.0
+    for i in range(n):
+        for j in range(i + 1, n):
+            d = float(np.linalg.norm(pts[i] - pts[j]))
+            if d > best_d:
+                best_d = d
+                best = (i, j)
+    c0 = pts[best[0]].astype(np.float64)
+    c1 = pts[best[1]].astype(np.float64)
+    labels = np.zeros(n, dtype=int)
+    for it in range(10):
+        d0 = np.linalg.norm(pts - c0, axis=1)
+        d1 = np.linalg.norm(pts - c1, axis=1)
+        new_labels = (d1 < d0).astype(int)  # tie -> 0
+        if it > 0 and np.array_equal(new_labels, labels):
+            break
+        labels = new_labels
+        if (labels == 0).any():
+            c0 = pts[labels == 0].mean(axis=0)
+        if (labels == 1).any():
+            c1 = pts[labels == 1].mean(axis=0)
+    return labels
+
+
+def _node_from_obs(conn: sqlite3.Connection, obs_list: list[Observation]) -> int:
+    centers = np.array([o.center_xyz for o in obs_list], dtype=np.float64)
+    centroid = centers.mean(axis=0)
+    bbox_min = tuple(min(o.bbox_min[i] for o in obs_list) for i in range(3))
+    bbox_max = tuple(max(o.bbox_max[i] for o in obs_list) for i in range(3))
+    feat = np.mean([o.feature for o in obs_list], axis=0)
+    nrm = float(np.linalg.norm(feat))
+    if nrm > 0:
+        feat = feat / nrm
+    labels: dict[str, float] = {}
+    for o in obs_list:
+        labels[o.label] = labels.get(o.label, 0.0) + o.confidence
+    tot = sum(labels.values()) or 1.0
+    labels_norm = sorted(((k, v / tot) for k, v in labels.items()), key=lambda kv: (-kv[1], kv[0]))
+    node_id = store.insert_node(
+        conn,
+        type_="object",
+        label=labels_norm[0][0],
+        labels=labels_norm,
+        confidence=max(o.confidence for o in obs_list),
+        centroid=(float(centroid[0]), float(centroid[1]), float(centroid[2])),
+        bbox_min=bbox_min,  # type: ignore[arg-type]
+        bbox_max=bbox_max,  # type: ignore[arg-type]
+        feature=feat,
+        n_obs=len(obs_list),
+        t_first=min(o.ts for o in obs_list),
+        t_last=max(o.ts for o in obs_list),
+    )
+    for o in obs_list:
+        store.relink_observation(conn, node_id, o.id, o.ts)
+    return node_id
+
+
+def split_node(
+    conn: sqlite3.Connection, node_id: int, cfg: FusionConfig | None = None
+) -> list[int]:
+    """Split a node whose member observations form two separated clusters.
+
+    Returns the new node ids if a split happened, else [] (node untouched).
+    """
+    cfg = cfg or FusionConfig()
+    obs = store.observations_for_node(conn, node_id)
+    if len(obs) < 2 * cfg.min_split_obs:
+        return []
+    pts = np.array([o.center_xyz for o in obs], dtype=np.float64)
+    labels = _kmeans2(pts)
+    g0 = [o for o, lab in zip(obs, labels, strict=True) if lab == 0]
+    g1 = [o for o, lab in zip(obs, labels, strict=True) if lab == 1]
+    if len(g0) < cfg.min_split_obs or len(g1) < cfg.min_split_obs:
+        return []
+    c0 = pts[labels == 0].mean(axis=0)
+    c1 = pts[labels == 1].mean(axis=0)
+    if float(np.linalg.norm(c0 - c1)) < cfg.tau_split_m:
+        return []
+    store.delete_node(conn, node_id)
+    return [_node_from_obs(conn, g0), _node_from_obs(conn, g1)]
+
+
 def ingest_observation(
     conn: sqlite3.Connection, obs: Observation, cfg: FusionConfig | None = None
 ) -> int | None:

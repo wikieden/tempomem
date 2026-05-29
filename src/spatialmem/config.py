@@ -25,6 +25,11 @@ class FusionConfig:
     # merge dynamics
     centroid_alpha: float = 0.2  # EMA factor for centroid/feature
     conf_gain: float = 0.5  # how fast confidence saturates toward 1
+    # split detection (M2): a node whose member observations form two clusters
+    # separated by more than tau_split_m, each with >= min_split_obs members,
+    # is split back into two nodes.
+    tau_split_m: float = 1.0
+    min_split_obs: int = 2
 
     def __post_init__(self) -> None:
         total = self.w_geom + self.w_iou + self.w_sem + self.w_label
