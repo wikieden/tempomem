@@ -31,6 +31,10 @@ All notable changes to SpatialMem are documented here. Format follows
 - **Read-only HTML viewer** — `spatialmem viz store.smem -o scene.html` (and
   `spatialmem.viz.to_html`). Self-contained: top-down 2D scatter of node
   centroids + a node table, no JS framework / network. (Deferred M1 web viewer.)
+- **Dataset streaming** — `DatasetSource` protocol + `stream(mem, source)` +
+  `SyntheticScene` (deterministic multi-frame GT scene) + `HashEncoder` fixture.
+  Demonstrates incremental fusion: a scene streamed frame-by-frame converges
+  many observations to one node per object (no GPU). See `examples/03`.
 
 ### Notes
 - Perception backend decided: `PerceptionAdapter` protocol + ConceptGraphs

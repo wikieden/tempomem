@@ -37,16 +37,19 @@ Make the thing installable and legible before adding features.
 
 The unblock. Ground-truth perception adapter → end-to-end demo.
 
-| ID | Task | Output | Depends |
-|---|---|---|---|
-| B1 | `DatasetAdapter` base + `ReplicaAdapter`: parse a Replica scene's GT instance masks + semantic labels + depth + trajectory → per-frame `Detection`s (3D bbox from masked depth back-projection, feature from a text-encoded GT label) | GT detections, no GPU | — |
-| B2 | Stream-ingest helper: iterate frames, `add_frame` per frame via the adapter, `commit()` | scene → graph | B1 |
-| B3 | `examples/03_replica_stream.py` + a small downloadable scene (or a synthetic Replica-shaped fixture for CI) | runnable demo | B2 |
-| B4 | Eval: scripted Q/A over the scene, `bench.recall_at_k` ≥ 4/5 | the M2 exit metric | B3 |
-| B5 | Record: viz HTML of the final graph + asciinema of the stream+query loop | demo artifact | B4 |
+| ID | Task | Output | Depends | Status |
+|---|---|---|---|---|
+| B1 | `DatasetSource` protocol + `SyntheticScene` (deterministic GT stream) + `HashEncoder` fixture | GT detections, no GPU | — | ✅ |
+| B2 | `stream(mem, source, commit_every=...)` ingest helper | scene → graph | B1 | ✅ |
+| B3 | `examples/03_stream_scene.py` (synthetic fixture, CI-runnable) | runnable demo | B2 | ✅ |
+| B4 | Eval: scripted Q/A, `bench.recall_at_k` — demo gets **5/5**, test asserts ≥0.8 | the M2 exit metric | B3 | ✅ |
+| B1' | Real `ReplicaAdapter`: parse a Replica scene's GT instance masks + depth + trajectory into the same `DatasetSource` shape | real-data stream | B1 | ⬜ |
+| B5 | Record: viz HTML of the final graph + asciinema of the stream loop | demo artifact | B4 | ⬜ |
 
-Result: **M2 exit met on CPU.** P3 bench parity then compares the GT adapter
-against ConceptGraphs once a GPU is available.
+**Done (2026-06-04):** the synthetic path proves the pipeline end-to-end on CPU
+— 15 frames × 5 objects = 75 observations fuse to 5 nodes (15× dedup), recall
+5/5. Remaining: swap the synthetic source for a real Replica parser (B1') and
+record the artifact (B5). P3 parity vs ConceptGraphs waits on a GPU.
 
 ## Phase C — Learned perception (needs GPU, when available)
 

@@ -1,7 +1,8 @@
 """SpatialMem — spatial memory layer for AI agents.
 
-Public API. See spec/API.md. M0 = detections-in only; perception adapters
-(M2), real fusion (M1), and semantic ANN (M1) are not wired yet.
+Public API. See spec/API.md. Detections-in ingest, incremental fusion, spatial
+/ temporal / semantic query, BYO encoder + verbalizer, sqlite-vec ANN, decay /
+split, the `PerceptionAdapter` seam (`add_frame`), and dataset streaming.
 """
 
 from __future__ import annotations
@@ -24,6 +25,7 @@ from ._errors import (
     StoreError,
 )
 from .config import FusionConfig, SpatialMemConfig
+from .datasets import DatasetSource, HashEncoder, SyntheticScene, stream
 from .encoders import Encoder
 from .frame import Detection, Observation
 from .perception import PerceptionAdapter
@@ -44,9 +46,11 @@ __all__ = [
     "AdapterError",
     "BadDetectionError",
     "CommitStats",
+    "DatasetSource",
     "Detection",
     "Encoder",
     "FusionConfig",
+    "HashEncoder",
     "IngestError",
     "NodeHit",
     "Observation",
@@ -59,8 +63,10 @@ __all__ = [
     "SpatialMemory",
     "StoreError",
     "StoreStats",
+    "SyntheticScene",
     "Verbalizer",
     "__version__",
+    "stream",
 ]
 
 
