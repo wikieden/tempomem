@@ -78,4 +78,7 @@ Blocked on a CUDA dev box:
 
 ## Tracking
 
-Each milestone breaks down in `docs/sprint/SPRINT-NN.md`. Resolved design questions land in [05-OPEN.md](05-OPEN.md); shipped surface is tracked in [CHANGELOG.md](../CHANGELOG.md) and [spec/API.md](../spec/API.md).
+Each milestone breaks down in `docs/sprint/SPRINT-NN.md`. The sequenced
+execution plan (GPU-aware, GT-adapter-first) lives in [DEV-PLAN.md](DEV-PLAN.md).
+Resolved design questions land in [05-OPEN.md](05-OPEN.md); shipped surface is
+tracked in [CHANGELOG.md](../CHANGELOG.md) and [spec/API.md](../spec/API.md).
