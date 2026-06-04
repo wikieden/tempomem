@@ -1,5 +1,10 @@
 # SpatialMem
 
+[![CI](https://github.com/wikieden/spatialmem/actions/workflows/ci.yml/badge.svg)](https://github.com/wikieden/spatialmem/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/spatialmem)](https://pypi.org/project/spatialmem/)
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+
 Spatial memory layer for AI agents. Turn RGB-D / point clouds into a persistent, queryable, LLM-native 3D scene graph — in one pip install.
 
 > **Positioning:** Mem0 for 3D space. ConceptGraphs / Hydra do perception; Mem0 does text memory; nothing today bridges perception → persistent, agent-queryable spatial memory. We fill that slot.
