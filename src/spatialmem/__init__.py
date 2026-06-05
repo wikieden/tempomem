@@ -525,6 +525,40 @@ class SpatialMemory:
         )
         self._conn.commit()
 
+    def merge(self, other: str | os.PathLike, *, episode: str | None = None) -> CommitStats:
+        """Merge another `.smem` store's objects into this one — re-entering a
+        space continues the same memory instead of starting over. Each object
+        node of `other` is fed through fusion as one observation, so the same
+        physical object seen in both sessions converges to a single node; new
+        objects are added. Regions are not merged. Returns the commit stats.
+        """
+        if self._readonly:
+            raise StoreError("store opened read-only")
+        src = SpatialMemory.open(other, embedding_dim=self._dim, create=False, readonly=True)
+        try:
+            dets: list[Detection] = []
+            for n in store.all_nodes(src._conn):
+                if n.type != "object":
+                    continue
+                f = store.node_feature(src._conn, n.id)
+                if f is None:
+                    continue
+                dets.append(
+                    Detection(
+                        label=n.label,
+                        feature=f,
+                        center_xyz=n.centroid,
+                        bbox_min=n.bbox_min,
+                        bbox_max=n.bbox_max,
+                        confidence=n.confidence,
+                        ts=n.t_last,
+                    )
+                )
+            self.add_detections(dets, episode=episode or "merged")
+            return self.commit()
+        finally:
+            src.close()
+
     def history(self, node_id: int) -> list[Observation]:
         """The time-ordered observation trail behind a node — every sighting
         that fused into it, with its timestamp and position. Answers "where was

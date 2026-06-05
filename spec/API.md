@@ -188,6 +188,11 @@ def update(self, node_id: int, *,
 def history(self, node_id: int) -> list[Observation]: ...
     # Time-ordered observation trail behind a node — every fused sighting with
     # its ts + position. "Last seen" is history(node_id)[-1].
+
+def merge(self, other: str | os.PathLike, *, episode: str | None = None) -> CommitStats: ...
+    # Fold another .smem store's object nodes into this one through fusion:
+    # shared objects dedupe to one node, new objects are added. Re-entering a
+    # space continues the memory. Embedding dims must match; regions not merged.
 ```
 
 ## Configuration

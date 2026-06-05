@@ -21,15 +21,17 @@ caller-supplied detections (BYO perception). Consequences:
   fixtures, not product features.** They feed the pipeline to prove the memory
   mechanics (and later to benchmark vs eMEM). Not a headline capability.
 
-The real core track is **deepening the memory**, all perception-free:
+The real core track is **deepening the memory**, all perception-free —
+**shipped 2026-06-05** (`define_region`/`contents`, `relate`/`related`,
+`update`/`history`, relation-aware `serialize`, `merge`):
 
-| Track | What it unlocks | Schema today |
+| Track | What it unlocks | Status |
 |---|---|---|
-| **Hierarchy / rooms** (next) | object → region → room; "what's in the kitchen?" | `nodes.parent_id`, `type` exist, unused |
-| Relations / edges | "mug *on* counter", "chair *near* table"; "what's on the table?" | `edges` table exists, unused |
-| update / history | correct a memory; "the mug moved / is gone / was last seen…" | only latest state stored |
-| multi-session merge | re-enter a space, memory continues without re-creating nodes | none |
-| relation-aware serialize | LLM prompt carries structure, not just an object list | flat list only |
+| Hierarchy / rooms | object → region → room; "what's in the kitchen?" | ✅ `define_region` / `contents` |
+| Relations / edges | "mug *on* counter", "chair *near* table"; "what's on the table?" | ✅ `relate` / `related` |
+| update / history | correct a memory; "the mug moved / was last seen…" | ✅ `update` / `history` |
+| relation-aware serialize | LLM prompt carries structure, not just an object list | ✅ `serialize(relations=True)` |
+| multi-session merge | re-enter a space, memory continues without re-creating nodes | ✅ `merge` |
 
 ## The key reframe — the M2 demo does NOT need a GPU
 

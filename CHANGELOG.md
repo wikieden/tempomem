@@ -57,6 +57,10 @@ All notable changes to SpatialMem are documented here. Format follows
   node's relation edges as a `| on table#3, near kettle#2` suffix (after
   `relate()`), so an LLM via `answer()` sees the scene graph, not just an object
   list. Toggle with `serialize(..., relations=False)`.
+- **Multi-session merge** — `merge(other_smem)` folds another store's objects
+  into this one through fusion: the same physical object seen in a later session
+  converges to one node, new objects are added. Re-entering a space continues
+  the memory instead of starting over. Dim-checked; regions are not merged.
 
 ### Notes
 - Perception backend decided: `PerceptionAdapter` protocol + ConceptGraphs
