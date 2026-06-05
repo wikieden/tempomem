@@ -14,7 +14,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from . import fusion, persist, serialize, store
+from . import fusion, persist, relations, serialize, store
 from ._errors import (
     AdapterError,
     BadDetectionError,
@@ -434,6 +434,41 @@ class SpatialMemory:
         else:
             rid = region
         return [_node_hit(n) for n in store.children(self._conn, rid)]
+
+    # ---- relations -------------------------------------------------------
+
+    def relate(self, *, near_m: float = 0.6, on_gap_m: float = 0.08) -> int:
+        """Infer geometric relations (near / on / under) over object nodes and
+        store them as edges. Idempotent; returns the number of edges written.
+        """
+        if self._readonly:
+            raise StoreError("store opened read-only")
+        n = relations.infer(self._conn, near_m=near_m, on_gap_m=on_gap_m)
+        self._conn.commit()
+        return n
+
+    def related(self, node: int | str, *, rel: str | None = None) -> list[tuple[NodeHit, str]]:
+        """Neighbors of a node via relation edges, as (neighbor, relation_type).
+
+        `node` is a node id or an object label. `rel` filters to one relation
+        type (e.g. "on", "near", "under").
+        """
+        if isinstance(node, str):
+            row = self._conn.execute(
+                "SELECT id FROM nodes WHERE label=? AND type='object' ORDER BY id LIMIT 1",
+                (node,),
+            ).fetchone()
+            if row is None:
+                return []
+            nid = int(row["id"])
+        else:
+            nid = node
+        out: list[tuple[NodeHit, str]] = []
+        for dst, type_, _conf in store.edges_from(self._conn, nid, rel):
+            n = store.get_node(self._conn, dst)
+            if n is not None:
+                out.append((_node_hit(n), type_))
+        return out
 
     def stats(self) -> StoreStats:
         return store.stats(self._conn)

@@ -155,6 +155,22 @@ Regions are structure, not observations: `decay()` never ages or prunes them,
 and `forget()` reparents a deleted node's children to its parent (no dangling
 `parent_id`).
 
+## Relations
+
+```python
+def relate(self, *, near_m: float = 0.6, on_gap_m: float = 0.08) -> int: ...
+    # Infer geometric relations over object nodes and store them as `edges`:
+    #   near  — centroids within near_m (symmetric)
+    #   on    — A's base near B's top with x/y overlap, A above B
+    #   under — inverse of every `on`
+    # Idempotent (clears prior auto edges first). Returns edges written.
+
+def related(self, node: int | str, *, rel: str | None = None
+            ) -> list[tuple[NodeHit, str]]: ...
+    # Neighbors of a node (by id or object label) as (neighbor, relation_type),
+    # optionally filtered to one relation type.
+```
+
 ## Configuration
 
 `SpatialMemory.open(..., config=SpatialMemConfig(...))`. All thresholds live on the config object, never as method kwargs:

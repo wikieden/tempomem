@@ -173,6 +173,31 @@ def upsert_edge(
     )
 
 
+def clear_edges_by_type(conn: sqlite3.Connection, types: list[str]) -> None:
+    if not types:
+        return
+    placeholders = ",".join("?" for _ in types)
+    conn.execute(f"DELETE FROM edges WHERE type IN ({placeholders})", types)
+
+
+def edges_from(
+    conn: sqlite3.Connection, node_id: int, type_: str | None = None
+) -> list[tuple[int, str, float]]:
+    """Outgoing edges of a node as (dst, type, confidence), best confidence first."""
+    if type_ is None:
+        rows = conn.execute(
+            "SELECT dst, type, confidence FROM edges WHERE src=? ORDER BY confidence DESC, dst",
+            (node_id,),
+        )
+    else:
+        rows = conn.execute(
+            "SELECT dst, type, confidence FROM edges WHERE src=? AND type=? "
+            "ORDER BY confidence DESC, dst",
+            (node_id, type_),
+        )
+    return [(int(r["dst"]), r["type"], float(r["confidence"])) for r in rows]
+
+
 def _row_to_node(r: sqlite3.Row) -> NodeRow:
     return NodeRow(
         id=int(r["id"]),

@@ -44,6 +44,10 @@ All notable changes to SpatialMem are documented here. Format follows
   arbiter skips non-object nodes so observations never merge into a region.
   Idempotent by `(label, type_)`; `forget`/`decay` reparent children safely and
   leave regions intact (regions are structure, not observations).
+- **Spatial relations** — `relate()` infers `near` / `on` / `under` edges
+  between object nodes from geometry (centroid distance + bbox stacking), no
+  perception. `related(node, rel=None)` returns a node's neighbors as
+  `(NodeHit, relation_type)`, by node id or object label. Idempotent recompute.
 
 ### Notes
 - Perception backend decided: `PerceptionAdapter` protocol + ConceptGraphs

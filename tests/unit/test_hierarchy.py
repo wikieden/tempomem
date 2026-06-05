@@ -6,12 +6,14 @@ from tests.conftest import DIM, make_det
 
 def _seed(mem) -> None:
     # kitchen cluster around x~1, a lone object far away at x~9
-    mem.add_detections([
-        make_det("mug", (1.0, 0.0, 0.9), 1),
-        make_det("kettle", (1.4, 0.0, 0.9), 2),
-        make_det("sink", (0.6, 0.0, 0.9), 3),
-        make_det("doormat", (9.0, 0.0, 0.0), 4),
-    ])
+    mem.add_detections(
+        [
+            make_det("mug", (1.0, 0.0, 0.9), 1),
+            make_det("kettle", (1.4, 0.0, 0.9), 2),
+            make_det("sink", (0.6, 0.0, 0.9), 3),
+            make_det("doormat", (9.0, 0.0, 0.0), 4),
+        ]
+    )
     mem.commit()
 
 
