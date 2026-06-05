@@ -72,6 +72,68 @@ def recent(conn: sqlite3.Connection, *, n: int = 10) -> list[NodeHit]:
     return out
 
 
+# Relation phrases → stored edge type. "X on Y" is stored as src=X dst=Y type=on,
+# so "what's on the table" = edges_to(table, "on"). Longer phrases first.
+_REL_PATTERNS = [
+    (re.compile(r"\bon top of\b"), "on"),
+    (re.compile(r"\bnext to\b"), "near"),
+    (re.compile(r"\bclose to\b"), "near"),
+    (re.compile(r"\b(?:underneath|under|below|beneath)\b"), "under"),
+    (re.compile(r"\b(?:near|beside|by)\b"), "near"),
+    (re.compile(r"\bon\b"), "on"),
+]
+
+
+def parse_relation(text: str) -> tuple[str, str] | None:
+    """Extract (relation_type, anchor_text) from a query, or None."""
+    t = text.lower()
+    for pat, rel in _REL_PATTERNS:
+        m = pat.search(t)
+        if m:
+            anchor = t[m.end() :].strip()
+            anchor = re.sub(r"^(?:the|a|an)\s+", "", anchor).strip(" ?.!,")
+            return rel, anchor
+    return None
+
+
+def _find_object(conn: sqlite3.Connection, anchor_text: str) -> store.NodeRow | None:
+    if not anchor_text:
+        return None
+    best: store.NodeRow | None = None
+    for n in store.all_nodes(conn):
+        if n.type != "object":
+            continue
+        lab = n.label.lower()
+        if (lab in anchor_text or anchor_text in lab) and (
+            best is None or len(n.label) > len(best.label)
+        ):
+            best = n
+    return best
+
+
+def relational(conn: sqlite3.Connection, text: str, *, k: int = 10) -> QueryResult | None:
+    """Resolve a relation query ("what's on the table") by edge traversal.
+
+    Returns None when no relation phrase or anchor object is found, so the
+    caller can fall back to other retrievers.
+    """
+    parsed = parse_relation(text)
+    if parsed is None:
+        return None
+    rel, anchor_text = parsed
+    anchor = _find_object(conn, anchor_text)
+    if anchor is None:
+        return None
+    hits: list[NodeHit] = []
+    for src, _type, conf in store.edges_to(conn, anchor.id, rel)[:k]:
+        n = store.get_node(conn, src)
+        if n is not None:
+            hits.append(_hit(n, conf))
+    return QueryResult(
+        nodes=hits, intent_used="spatial", debug={"relation": rel, "anchor": anchor.label}
+    )
+
+
 def spatial(
     conn: sqlite3.Connection,
     *,

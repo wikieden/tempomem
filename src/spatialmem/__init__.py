@@ -33,6 +33,7 @@ from .query import NodeHit, QueryResult
 from .query import detect_intent as _detect_intent
 from .query import query as _query
 from .query import recent as _recent
+from .query import relational as _relational
 from .query import semantic_keyword as _semantic_keyword
 from .query import semantic_vec as _semantic_vec
 from .query import spatial as _spatial
@@ -243,6 +244,10 @@ class SpatialMemory:
 
     def query(self, text: str, *, k: int = 10, intent: str = "auto") -> QueryResult:
         try:
+            if intent in ("auto", "spatial", "relational"):
+                rel = _relational(self._conn, text, k=k)
+                if rel is not None:
+                    return rel  # relation phrase + anchor object matched
             used = _detect_intent(text) if intent == "auto" else intent
             if used in ("semantic", "hybrid") and self._encoder is not None:
                 qv = self._encoder.encode_text([text])[0]

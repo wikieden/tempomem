@@ -198,6 +198,26 @@ def edges_from(
     return [(int(r["dst"]), r["type"], float(r["confidence"])) for r in rows]
 
 
+def edges_to(
+    conn: sqlite3.Connection, node_id: int, type_: str | None = None
+) -> list[tuple[int, str, float]]:
+    """Incoming edges of a node as (src, type, confidence). `edges_to(table, "on")`
+    returns the objects resting ON `table` (each stored as src→table type "on").
+    """
+    if type_ is None:
+        rows = conn.execute(
+            "SELECT src, type, confidence FROM edges WHERE dst=? ORDER BY confidence DESC, src",
+            (node_id,),
+        )
+    else:
+        rows = conn.execute(
+            "SELECT src, type, confidence FROM edges WHERE dst=? AND type=? "
+            "ORDER BY confidence DESC, src",
+            (node_id, type_),
+        )
+    return [(int(r["src"]), r["type"], float(r["confidence"])) for r in rows]
+
+
 def _row_to_node(r: sqlite3.Row) -> NodeRow:
     return NodeRow(
         id=int(r["id"]),

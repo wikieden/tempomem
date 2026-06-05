@@ -31,6 +31,14 @@ Order:
 ### `temporal(n)`
 - Index scan on `nodes(t_last DESC)`. (Per-episode filter: planned.)
 
+### `relational(text, k)`
+- **As built:** parses a relation phrase (`on` / `near` / `under` / `next to` /
+  `beside` / `below` …) and an anchor object label from the query, then
+  traverses `edges` — e.g. "what's on the table" → `edges_to(table, "on")`.
+  `query()` tries this first on `auto`/`spatial` intent and falls back to the
+  other retrievers when no phrase or anchor object matches. Multi-hop chains and
+  the LLM subject/relation/anchor slot extractor remain planned.
+
 ### `hybrid` (used when intent set has ≥ 2)
 - Slot-fill: subject (semantic) + anchor (semantic) + relation (lexical).
 - Resolve anchor first; use its centroid + radius derived from relation (`on` → 0.3m; `near` → 1.0m; `inside` → bbox).

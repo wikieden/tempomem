@@ -61,6 +61,11 @@ All notable changes to SpatialMem are documented here. Format follows
   into this one through fusion: the same physical object seen in a later session
   converges to one node, new objects are added. Re-entering a space continues
   the memory instead of starting over. Dim-checked; regions are not merged.
+- **Relational NL query** — `query("what's on the table")` now parses a relation
+  phrase (`on` / `near` / `under` / `next to` / `beside` …) + an anchor object
+  and traverses the relation edges, so the relations from `relate()` are
+  answerable in natural language. Falls back to semantic/keyword when no
+  relation phrase or anchor object matches.
 
 ### Notes
 - Perception backend decided: `PerceptionAdapter` protocol + ConceptGraphs
