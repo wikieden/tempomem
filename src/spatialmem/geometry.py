@@ -59,9 +59,7 @@ def oriented_box_corners(center: Vec3, size: Vec3, rpy: Vec3) -> np.ndarray:
     return (local @ rot.T) + np.asarray(center, dtype=np.float64).reshape(3)
 
 
-def world_aabb_from_obb(
-    pose: np.ndarray, center: Vec3, size: Vec3, rpy: Vec3
-) -> tuple[Vec3, Vec3]:
+def world_aabb_from_obb(pose: np.ndarray, center: Vec3, size: Vec3, rpy: Vec3) -> tuple[Vec3, Vec3]:
     """Camera-frame oriented box -> world-frame axis-aligned bbox (min, max).
 
     Transforms the box's 8 corners by `pose` and takes the component-wise
