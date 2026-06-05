@@ -70,12 +70,16 @@ def to_prompt(
     root: int | None = None,
     k_hops: int = 2,
     relations: bool = True,
+    max_tokens: int | None = None,
 ) -> str:
     """Token-efficient indented text, grouped by hierarchy: region/room nodes
     list their child objects indented beneath them; ungrouped objects sit at the
     top level. `root` restricts the tree to one node's subtree. When `relations`
     and edges exist, each node line gets a `| <rel> <label>#<id>, …` suffix
     (e.g. `| on table#3, near kettle#2`) so an LLM sees the scene graph.
+
+    `max_tokens` caps the output: nodes are emitted most-recent-first and the
+    rest dropped with an explicit `… (N more omitted)` marker (never silent).
     """
     nodes = store.all_nodes(conn)
     by_id = {n.id: n for n in nodes}
@@ -105,7 +109,26 @@ def to_prompt(
         tops = sorted(children.get(None, []), key=lambda x: (-x.t_last, x.id))
         for n in tops:
             emit(n, 1)
-    return "\n".join(lines)
+
+    if max_tokens is None:
+        return "\n".join(lines)
+
+    def _est(s: str) -> int:
+        return max(1, len(s) // 4)  # ~4 chars/token
+
+    kept = [lines[0]]
+    used = _est(lines[0])
+    dropped = 0
+    for ln in lines[1:]:
+        cost = _est(ln)
+        if used + cost <= max_tokens:
+            kept.append(ln)
+            used += cost
+        else:
+            dropped += 1
+    if dropped:
+        kept.append(f"  … ({dropped} more omitted)")
+    return "\n".join(kept)
 
 
 def dump_json(conn: sqlite3.Connection, embedding_dim: int, indent: int = 2) -> str:

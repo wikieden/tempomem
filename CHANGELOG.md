@@ -71,6 +71,10 @@ All notable changes to SpatialMem are documented here. Format follows
   `ChangeSet(new, seen_again)` of nodes that first appeared or were re-observed
   since a time. `stale(before_ts)` lists nodes not seen since then (candidate
   "gone"). Temporal memory: "what moved / is new / hasn't been seen".
+- **Token-budgeted prompt** — `serialize(format="prompt", max_tokens=N)` caps
+  the output: nodes are emitted most-recent-first and the remainder dropped with
+  an explicit `… (N more omitted)` marker (never silent). Keeps the LLM payload
+  bounded on large scenes.
 
 ### Notes
 - Perception backend decided: `PerceptionAdapter` protocol + ConceptGraphs

@@ -311,11 +311,18 @@ class SpatialMemory:
         root: int | None = None,
         k_hops: int = 2,
         relations: bool = True,
+        max_tokens: int | None = None,
     ) -> str:
         if format == "json":
             return serialize.dump_json(self._conn, self._dim)
         if format == "prompt":
-            return serialize.to_prompt(self._conn, root=root, k_hops=k_hops, relations=relations)
+            return serialize.to_prompt(
+                self._conn,
+                root=root,
+                k_hops=k_hops,
+                relations=relations,
+                max_tokens=max_tokens,
+            )
         raise QueryError(f"unknown serialize format: {format}")
 
     # ---- maintenance -----------------------------------------------------
