@@ -91,7 +91,10 @@ def recent(self, *, n: int = 10) -> list[NodeHit]: ...           # episode filte
 
 def serialize(self, *, format: Literal["prompt", "json"] = "prompt",
               root: int | None = None,
-              k_hops: int = 2) -> str: ...                       # "dot"/max_tokens: planned
+              k_hops: int = 2,
+              relations: bool = True) -> str: ...                # "dot"/max_tokens: planned
+    # prompt: hierarchy-indented; each node line gets a `| <rel> <label>#<id>`
+    # suffix from its edges when relations=True (after relate()).
 ```
 
 Return shapes:

@@ -64,10 +64,18 @@ def _fmt_node(n: store.NodeRow, indent: int) -> str:
     )
 
 
-def to_prompt(conn: sqlite3.Connection, *, root: int | None = None, k_hops: int = 2) -> str:
+def to_prompt(
+    conn: sqlite3.Connection,
+    *,
+    root: int | None = None,
+    k_hops: int = 2,
+    relations: bool = True,
+) -> str:
     """Token-efficient indented text, grouped by hierarchy: region/room nodes
     list their child objects indented beneath them; ungrouped objects sit at the
-    top level. `root` restricts the tree to one node's subtree.
+    top level. `root` restricts the tree to one node's subtree. When `relations`
+    and edges exist, each node line gets a `| <rel> <label>#<id>, …` suffix
+    (e.g. `| on table#3, near kettle#2`) so an LLM sees the scene graph.
     """
     nodes = store.all_nodes(conn)
     by_id = {n.id: n for n in nodes}
@@ -78,7 +86,16 @@ def to_prompt(conn: sqlite3.Connection, *, root: int | None = None, k_hops: int 
     lines = [f"SCENE (root={root}, ts={t_now:.1f})"]
 
     def emit(n: store.NodeRow, depth: int) -> None:
-        lines.append(_fmt_node(n, depth))
+        line = _fmt_node(n, depth)
+        if relations:
+            rels = ", ".join(
+                f"{t} {by_id[d].label}#{d}"
+                for d, t, _ in store.edges_from(conn, n.id)
+                if d in by_id
+            )
+            if rels:
+                line += f"  | {rels}"
+        lines.append(line)
         for kid in sorted(children.get(n.id, []), key=lambda x: (-x.t_last, x.id)):
             emit(kid, depth + 1)
 

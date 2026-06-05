@@ -53,6 +53,10 @@ All notable changes to SpatialMem are documented here. Format follows
   the bbox, keeping extent). `history(node_id)` returns the time-ordered
   observation trail behind a node — every sighting with its timestamp and
   position, so "where was it over time" / "last seen" is `history(id)[-1]`.
+- **Relation-aware prompt** — `serialize(format="prompt")` now appends each
+  node's relation edges as a `| on table#3, near kettle#2` suffix (after
+  `relate()`), so an LLM via `answer()` sees the scene graph, not just an object
+  list. Toggle with `serialize(..., relations=False)`.
 
 ### Notes
 - Perception backend decided: `PerceptionAdapter` protocol + ConceptGraphs

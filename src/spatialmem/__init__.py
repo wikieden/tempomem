@@ -290,11 +290,18 @@ class SpatialMemory:
     def recent(self, *, n: int = 10) -> list[NodeHit]:
         return _recent(self._conn, n=n)
 
-    def serialize(self, *, format: str = "prompt", root: int | None = None, k_hops: int = 2) -> str:
+    def serialize(
+        self,
+        *,
+        format: str = "prompt",
+        root: int | None = None,
+        k_hops: int = 2,
+        relations: bool = True,
+    ) -> str:
         if format == "json":
             return serialize.dump_json(self._conn, self._dim)
         if format == "prompt":
-            return serialize.to_prompt(self._conn, root=root, k_hops=k_hops)
+            return serialize.to_prompt(self._conn, root=root, k_hops=k_hops, relations=relations)
         raise QueryError(f"unknown serialize format: {format}")
 
     # ---- maintenance -----------------------------------------------------
