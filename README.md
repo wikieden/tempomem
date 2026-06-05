@@ -49,6 +49,7 @@ Runnable, no GPU: `python examples/01_quickstart.py` and `examples/02_query_and_
 | Semantic query via BYO `Encoder` (`OpenClipEncoder` in `[clip]`) | ✅ |
 | sqlite-vec ANN index (`[vec]`), linear fallback | ✅ |
 | `answer()` via BYO `Verbalizer` (OpenAI / Anthropic / Ollama) | ✅ |
+| Built-in `CosmosReasonVerbalizer` — NVIDIA Cosmos Reason NIM as the answer brain | ✅ |
 | `decay()` + `forget()` + `resplit()` memory hygiene | ✅ |
 | `consolidate()` + `salient()` memory consolidation | ✅ |
 | Hierarchy / rooms — `define_region()` + `contents()` | ✅ |

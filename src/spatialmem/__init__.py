@@ -25,6 +25,7 @@ from ._errors import (
     StoreError,
 )
 from .config import FusionConfig, SpatialMemConfig
+from .cosmos import CosmosReasonVerbalizer
 from .datasets import DatasetSource, HashEncoder, SyntheticScene, stream
 from .encoders import Encoder
 from .frame import Detection, Observation
@@ -48,6 +49,7 @@ __all__ = [
     "BadDetectionError",
     "ChangeSet",
     "CommitStats",
+    "CosmosReasonVerbalizer",
     "DatasetSource",
     "Detection",
     "Encoder",

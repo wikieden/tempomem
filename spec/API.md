@@ -263,8 +263,15 @@ class PerceptionAdapter(Protocol):       # spatialmem.perception
                       intrinsics=None) -> list[Detection]: ...
 ```
 
-Reference impls: `OpenClipEncoder` (`[clip]` extra). ConceptGraphs perception
-adapter is WIP (`[perception]`, CUDA).
+Reference impls: `OpenClipEncoder` (`[clip]` extra); `CosmosReasonVerbalizer`
+(`spatialmem.cosmos`) — wraps an OpenAI-compatible NVIDIA Cosmos Reason NIM
+(stdlib-only, `NVIDIA_API_KEY`, configurable `model=`/`base_url=`). ConceptGraphs
+perception adapter is WIP (`[perception]`, CUDA).
+
+> Cosmos Reason is a chain-of-thought reasoning VLM — strong as an `answer()`
+> backend over the serialized scene graph, but it emits **no** world-frame 3D
+> detections, so it is not a `PerceptionAdapter`. SpatialMem remains the
+> persistent 3D memory; Cosmos is the reasoning brain on top.
 
 ## Datasets
 
