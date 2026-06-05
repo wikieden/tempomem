@@ -470,5 +470,60 @@ class SpatialMemory:
                 out.append((_node_hit(n), type_))
         return out
 
+    # ---- update / history ------------------------------------------------
+
+    def update(
+        self,
+        node_id: int,
+        *,
+        label: str | None = None,
+        center_xyz: tuple[float, float, float] | None = None,
+        confidence: float | None = None,
+    ) -> None:
+        """Correct a node in place (Mem0-style update). Only the given fields
+        change; moving `center_xyz` shifts the bbox by the same delta, keeping
+        its extent. Raises StoreError if the node does not exist.
+        """
+        if self._readonly:
+            raise StoreError("store opened read-only")
+        n = store.get_node(self._conn, node_id)
+        if n is None:
+            raise StoreError(f"node {node_id} not found")
+        new_label = n.label if label is None else label
+        new_labels = n.labels if label is None else [(label, 1.0)]
+        new_conf = n.confidence if confidence is None else confidence
+        if new_conf < 0.0 or new_conf > 1.0:
+            raise StoreError(f"confidence {new_conf} not in [0, 1]")
+        if center_xyz is not None:
+            half = tuple((n.bbox_max[i] - n.bbox_min[i]) / 2 for i in range(3))
+            centroid = center_xyz
+            bbox_min = tuple(center_xyz[i] - half[i] for i in range(3))
+            bbox_max = tuple(center_xyz[i] + half[i] for i in range(3))
+        else:
+            centroid, bbox_min, bbox_max = n.centroid, n.bbox_min, n.bbox_max
+        feat = store.node_feature(self._conn, node_id)
+        assert feat is not None
+        store.update_node(
+            self._conn,
+            node_id,
+            label=new_label,
+            labels=new_labels,
+            confidence=new_conf,
+            centroid=centroid,  # type: ignore[arg-type]
+            bbox_min=bbox_min,  # type: ignore[arg-type]
+            bbox_max=bbox_max,  # type: ignore[arg-type]
+            feature=feat,
+            n_obs=n.n_obs,
+            t_last=n.t_last,
+        )
+        self._conn.commit()
+
+    def history(self, node_id: int) -> list[Observation]:
+        """The time-ordered observation trail behind a node — every sighting
+        that fused into it, with its timestamp and position. Answers "where was
+        it over time" / "when was it last seen" (`history(id)[-1]`).
+        """
+        return store.observations_for_node(self._conn, node_id)
+
     def stats(self) -> StoreStats:
         return store.stats(self._conn)

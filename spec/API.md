@@ -171,6 +171,22 @@ def related(self, node: int | str, *, rel: str | None = None
     # optionally filtered to one relation type.
 ```
 
+## Update / History
+
+```python
+def update(self, node_id: int, *,
+           label: str | None = None,
+           center_xyz: tuple[float, float, float] | None = None,
+           confidence: float | None = None) -> None: ...
+    # Correct a node in place. Only given fields change; moving center_xyz
+    # shifts the bbox by the same delta (extent preserved). Raises StoreError
+    # for a missing node or confidence outside [0, 1].
+
+def history(self, node_id: int) -> list[Observation]: ...
+    # Time-ordered observation trail behind a node — every fused sighting with
+    # its ts + position. "Last seen" is history(node_id)[-1].
+```
+
 ## Configuration
 
 `SpatialMemory.open(..., config=SpatialMemConfig(...))`. All thresholds live on the config object, never as method kwargs:

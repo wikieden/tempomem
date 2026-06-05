@@ -48,6 +48,11 @@ All notable changes to SpatialMem are documented here. Format follows
   between object nodes from geometry (centroid distance + bbox stacking), no
   perception. `related(node, rel=None)` returns a node's neighbors as
   `(NodeHit, relation_type)`, by node id or object label. Idempotent recompute.
+- **`update()` + `history()`** — `update(node_id, *, label=, center_xyz=,
+  confidence=)` corrects a node in place (Mem0-style; moving the centroid shifts
+  the bbox, keeping extent). `history(node_id)` returns the time-ordered
+  observation trail behind a node — every sighting with its timestamp and
+  position, so "where was it over time" / "last seen" is `history(id)[-1]`.
 
 ### Notes
 - Perception backend decided: `PerceptionAdapter` protocol + ConceptGraphs

@@ -32,3 +32,4 @@ htmlcov/
 
 # Agent / tooling state
 .omc/
+.claude/
