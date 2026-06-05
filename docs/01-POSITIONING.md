@@ -33,6 +33,8 @@ No row in the existing market hits all eight cells. That's the wedge.
 ### NVIDIA Isaac / GR00T / Cosmos — adjacent platform
 - **Posture:** they ship the perception + VLA brain. They explicitly do not ship persistent spatial memory.
 - **Strategy:** publish an Isaac ROS / GR00T integration recipe. Become the "memory layer GR00T forgot."
+- **Validation (2026-06):** NVIDIA's own **Cosmos 3** technical report (138 pp, GTC Taipei) names the gap as the field's open problem — *"physical intelligence needs more than recognition … it requires temporally persistent state, spatial grounding tied to objects and agents … a maintained, actionable scene estimate."* Cosmos 3 itself ships none of it: a bounded 74K-token generator context, ephemeral per-request KV-cache, zero mentions of "spatial memory" or "cross-session." Their flagship Physical-AI model **defines our thesis as unsolved** — the strongest possible third-party endorsement of the wedge.
+- **Seam, not threat:** Cosmos 3's Reasoner emits *structured camera-frame 3D boxes (unified JSON) + estimated metric ego-pose* — i.e. it is a strong **upstream detection source** for our ingest contract (a `Cosmos3PerceptionAdapter`), not a memory competitor. We sit on top, persisting what it perceives.
 
 ## Three-sentence pitch (memorize)
 

@@ -48,6 +48,8 @@ The L3 planner / Brain2Robot work in adjacent repos is a built-in flagship consu
 
 Two 2026 narratives — "agent memory" (Mem0 thesis) and "Physical AI" (NVIDIA thesis) — are converging. SpatialMem is the only library positioned to be cited in both stories. We win if we ship the cleanest API, not the deepest research.
 
+NVIDIA's June-2026 **Cosmos 3** technical report makes the bet for us: it names *"temporally persistent state, spatial grounding tied to objects and agents … a maintained, actionable scene estimate"* as the unsolved challenge for Physical AI — then ships a per-clip model with a bounded context and **no** persistent scene store. The biggest player in Physical AI just defined our layer as the missing piece. Cosmos 3's Reasoner (structured camera-frame 3D boxes + metric ego-pose) becomes an *upstream feed* for our ingest, not a competitor — it perceives, we remember.
+
 ## Success in 12 months
 
 - 1k★ on GitHub

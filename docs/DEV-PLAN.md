@@ -86,6 +86,11 @@ Runs on Colab / a rented cloud GPU — parallel to B/D, not blocking.
 | C1 | `ConceptGraphsAdapter` (SAM + Grounding DINO + OpenCLIP) behind `[perception]`, same `PerceptionAdapter` seam | real open-vocab perception |
 | C2 | P3 parity: object recall of C1 vs B1 GT on shared scenes, within ±10% | quality proof |
 | C3 | Swap demo from GT to learned perception; re-record | "real" demo |
+| C4 | `Cosmos3PerceptionAdapter` — NVIDIA Cosmos 3 Reasoner (structured camera-frame 3D boxes + metric ego-pose) → world-frame `Detection` + CLIP-crop feature. Design: [design/cosmos3-perception-adapter.md](design/cosmos3-perception-adapter.md) | Cosmos-native perception (alt to C1) |
+
+> Path-A companion (`CosmosReasonVerbalizer`, the Cosmos answer brain) already
+> shipped — see `spatialmem.cosmos`. C4 is the path-B eyes; both lean on the same
+> Cosmos 3 family. C4 needs an `Encoder.encode_image` addition (see design doc).
 
 ## Phase D — M3 reach (mostly no GPU)
 
