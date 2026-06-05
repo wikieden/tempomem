@@ -54,20 +54,40 @@ def to_json(conn: sqlite3.Connection, embedding_dim: int) -> dict:
     }
 
 
-def to_prompt(conn: sqlite3.Connection, *, root: int | None = None, k_hops: int = 1) -> str:
-    """Token-efficient indented text. M0: flat list (hierarchy inference is M2)."""
+def _fmt_node(n: store.NodeRow, indent: int) -> str:
+    c = n.centroid
+    pad = "  " * indent
+    return (
+        f'{pad}{n.type}#{n.id} "{n.label}"  '
+        f"@[{c[0]:.2f}, {c[1]:.2f}, {c[2]:.2f}]  "
+        f"t_last={n.t_last:.1f}  conf={n.confidence:.2f}"
+    )
+
+
+def to_prompt(conn: sqlite3.Connection, *, root: int | None = None, k_hops: int = 2) -> str:
+    """Token-efficient indented text, grouped by hierarchy: region/room nodes
+    list their child objects indented beneath them; ungrouped objects sit at the
+    top level. `root` restricts the tree to one node's subtree.
+    """
     nodes = store.all_nodes(conn)
-    if root is not None:
-        nodes = [n for n in nodes if n.id == root] or nodes
+    by_id = {n.id: n for n in nodes}
+    children: dict[int | None, list[store.NodeRow]] = {}
+    for n in nodes:
+        children.setdefault(n.parent_id, []).append(n)
     t_now = max((n.t_last for n in nodes), default=0.0)
-    lines = [f"SCENE (root={root}, k_hops={k_hops}, ts={t_now:.1f})"]
-    for n in sorted(nodes, key=lambda x: (-x.t_last, x.id)):
-        c = n.centroid
-        lines.append(
-            f'  {n.type}#{n.id} "{n.label}"  '
-            f"@[{c[0]:.2f}, {c[1]:.2f}, {c[2]:.2f}]  "
-            f"t_last={n.t_last:.1f}  conf={n.confidence:.2f}"
-        )
+    lines = [f"SCENE (root={root}, ts={t_now:.1f})"]
+
+    def emit(n: store.NodeRow, depth: int) -> None:
+        lines.append(_fmt_node(n, depth))
+        for kid in sorted(children.get(n.id, []), key=lambda x: (-x.t_last, x.id)):
+            emit(kid, depth + 1)
+
+    if root is not None and root in by_id:
+        emit(by_id[root], 1)
+    else:
+        tops = sorted(children.get(None, []), key=lambda x: (-x.t_last, x.id))
+        for n in tops:
+            emit(n, 1)
     return "\n".join(lines)
 
 

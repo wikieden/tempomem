@@ -70,7 +70,7 @@ sqlite-vec table for observations remains optional/future.
 | t_first | REAL | |
 | t_last | REAL | |
 | feature | BLOB | float32 vec(D), L2-normalized centroid of member obs |
-| parent_id | INTEGER FK NULL | hierarchical containment |
+| parent_id | INTEGER FK NULL | hierarchical containment; set by `define_region` |
 
 Index: `(type)`, `(label)`, `(t_last DESC)`.
 

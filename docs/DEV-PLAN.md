@@ -8,6 +8,29 @@ order*, given one hard constraint: **no GPU on the current dev box.**
 cov, CI green. M0 ✅ · M1 ✅ · M2 🟡 (V-track + perception seam + viz done;
 learned perception P1/P3 blocked on CUDA).
 
+## Scope correction (2026-06-05) — we are a MEMORY system, not perception
+
+SpatialMem stores and queries spatial memory. **Recognition is not our job** —
+like Mem0 doesn't do speech-to-text, we don't do object detection. Input is
+caller-supplied detections (BYO perception). Consequences:
+
+- **Perception (Phase C / ConceptGraphs) is demoted to an optional `[perception]`
+  extra + a "how to wire your own perception" example.** Not a core deliverable.
+  Off the critical path entirely.
+- **Datasets (`SyntheticScene`, a future `ReplicaAdapter`) are test/benchmark
+  fixtures, not product features.** They feed the pipeline to prove the memory
+  mechanics (and later to benchmark vs eMEM). Not a headline capability.
+
+The real core track is **deepening the memory**, all perception-free:
+
+| Track | What it unlocks | Schema today |
+|---|---|---|
+| **Hierarchy / rooms** (next) | object → region → room; "what's in the kitchen?" | `nodes.parent_id`, `type` exist, unused |
+| Relations / edges | "mug *on* counter", "chair *near* table"; "what's on the table?" | `edges` table exists, unused |
+| update / history | correct a memory; "the mug moved / is gone / was last seen…" | only latest state stored |
+| multi-session merge | re-enter a space, memory continues without re-creating nodes | none |
+| relation-aware serialize | LLM prompt carries structure, not just an object list | flat list only |
+
 ## The key reframe — the M2 demo does NOT need a GPU
 
 M2's exit is "stream a Replica scene, ask 5 questions, get 4 right." We assumed

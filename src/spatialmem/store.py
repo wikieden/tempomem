@@ -210,6 +210,14 @@ def recent_nodes(conn: sqlite3.Connection, n: int) -> list[NodeRow]:
 
 
 def delete_node(conn: sqlite3.Connection, node_id: int) -> None:
+    # Reparent any children to this node's parent (grandparent) first, so the
+    # parent_id foreign key never dangles — deleting a region with children must
+    # not raise. A top-level node's children become top-level (parent_id NULL).
+    conn.execute(
+        "UPDATE nodes SET parent_id=(SELECT parent_id FROM nodes WHERE id=:nid) "
+        "WHERE parent_id=:nid",
+        {"nid": node_id},
+    )
     conn.execute("DELETE FROM node_obs WHERE node_id=?", (node_id,))
     conn.execute("DELETE FROM edges WHERE src=? OR dst=?", (node_id, node_id))
     conn.execute("DELETE FROM nodes WHERE id=?", (node_id,))
@@ -250,6 +258,33 @@ def set_confidence(conn: sqlite3.Connection, node_id: int, confidence: float) ->
     conn.execute("UPDATE nodes SET confidence=? WHERE id=?", (confidence, node_id))
 
 
+def set_parent(conn: sqlite3.Connection, node_id: int, parent_id: int | None) -> None:
+    conn.execute("UPDATE nodes SET parent_id=? WHERE id=?", (parent_id, node_id))
+
+
+def children(conn: sqlite3.Connection, parent_id: int) -> list[NodeRow]:
+    rows = conn.execute("SELECT * FROM nodes WHERE parent_id=? ORDER BY id", (parent_id,))
+    return [_row_to_node(r) for r in rows]
+
+
+def nodes_in_bbox(
+    conn: sqlite3.Connection, bbox_min: Vec3, bbox_max: Vec3, *, type_: str | None = "object"
+) -> list[NodeRow]:
+    """Nodes whose centroid falls inside the axis-aligned bbox (inclusive).
+
+    Filters to `type_` when given (default: leaf objects, so rooms don't nest
+    into rooms by accident).
+    """
+    out = []
+    for n in all_nodes(conn):
+        if type_ is not None and n.type != type_:
+            continue
+        c = n.centroid
+        if all(bbox_min[i] <= c[i] <= bbox_max[i] for i in range(3)):
+            out.append(n)
+    return out
+
+
 def decay_and_prune(
     conn: sqlite3.Connection, *, now: float, half_life_days: float, min_conf: float
 ) -> tuple[int, int]:
@@ -263,6 +298,8 @@ def decay_and_prune(
     decayed = 0
     pruned = 0
     for n in all_nodes(conn):
+        if n.type != "object":
+            continue  # regions/rooms are user-defined structure, not observations
         age_days = max(0.0, (now - n.t_last) / 86400.0)
         factor = 0.5 ** (age_days / half_life_days)
         new_conf = n.confidence * factor

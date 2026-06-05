@@ -35,6 +35,15 @@ All notable changes to SpatialMem are documented here. Format follows
   `SyntheticScene` (deterministic multi-frame GT scene) + `HashEncoder` fixture.
   Demonstrates incremental fusion: a scene streamed frame-by-frame converges
   many observations to one node per object (no GPU). See `examples/03`.
+- **Hierarchy / rooms** — `define_region(label, bbox_min, bbox_max, *,
+  type_="room")` creates a region node and adopts every object whose centroid
+  falls inside it as a child (`parent_id`). Region feature = `encoder.encode_text(label)`
+  when an encoder is set (so `query("kitchen")` ranks it), else the mean of child
+  features. `contents(region)` returns a region's children (by id or label).
+  `serialize(format="prompt")` now nests objects under their region; the fusion
+  arbiter skips non-object nodes so observations never merge into a region.
+  Idempotent by `(label, type_)`; `forget`/`decay` reparent children safely and
+  leave regions intact (regions are structure, not observations).
 
 ### Notes
 - Perception backend decided: `PerceptionAdapter` protocol + ConceptGraphs

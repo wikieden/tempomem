@@ -134,6 +134,27 @@ def stats(self) -> StoreStats: ...
 
 JSON export is via `serialize(format="json")`. A standalone `dump()` is planned.
 
+## Hierarchy
+
+```python
+def define_region(self, label: str,
+                  bbox_min: tuple[float, float, float],
+                  bbox_max: tuple[float, float, float],
+                  *, type_: str = "room") -> int: ...
+    # Create (or, by (label, type_), redefine) a region node over an AABB and set
+    # parent_id on every object node whose centroid is inside. Region feature =
+    # encoder.encode_text(label) when open(encoder=...), else mean of child
+    # features. Single-parent membership: on overlap, last definition wins.
+    # Returns the region node id.
+
+def contents(self, region: int | str) -> list[NodeHit]: ...
+    # Child nodes of a region, addressed by node id or by region label.
+```
+
+Regions are structure, not observations: `decay()` never ages or prunes them,
+and `forget()` reparents a deleted node's children to its parent (no dangling
+`parent_id`).
+
 ## Configuration
 
 `SpatialMemory.open(..., config=SpatialMemConfig(...))`. All thresholds live on the config object, never as method kwargs:

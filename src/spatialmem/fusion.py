@@ -230,6 +230,8 @@ def ingest_observation(
     best_node: store.NodeRow | None = None
     best_score = -1.0
     for node in candidates:
+        if node.type != "object":
+            continue  # never merge an observation into a region/room node
         nf = store.node_feature(conn, node.id)
         if nf is None:
             continue

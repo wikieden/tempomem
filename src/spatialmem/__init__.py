@@ -81,6 +81,25 @@ def _now() -> float:
     return time.time()
 
 
+def _node_hit(n: store.NodeRow) -> NodeHit:
+    return NodeHit(
+        id=n.id,
+        label=n.label,
+        center_xyz=n.centroid,
+        confidence=n.confidence,
+        score=n.confidence,
+        t_first=n.t_first,
+        t_last=n.t_last,
+    )
+
+
+def _unit_feature(dim: int) -> np.ndarray:
+    """A valid L2-normalized placeholder feature (e0) for region nodes."""
+    v = np.zeros(dim, dtype="float32")
+    v[0] = 1.0
+    return v
+
+
 class SpatialMemory:
     """A persistent spatial scene-graph memory backed by a single .smem file."""
 
@@ -320,6 +339,101 @@ class SpatialMemory:
                 created += len(new)
         self._conn.commit()
         return split, created
+
+    # ---- hierarchy -------------------------------------------------------
+
+    def define_region(
+        self,
+        label: str,
+        bbox_min: tuple[float, float, float],
+        bbox_max: tuple[float, float, float],
+        *,
+        type_: str = "room",
+    ) -> int:
+        """Create (or redefine) a region node over a bbox and adopt every object
+        whose centroid falls inside it as a child (`parent_id`).
+
+        The region's feature is the encoder embedding of `label` when an encoder
+        is set (so `query("kitchen")` can find it), else the mean of its
+        members' features. Returns the region node id.
+
+        Idempotent by `(label, type_)`: redefining an existing region updates it
+        in place and re-derives membership (old children are released first).
+        Membership is single-parent — if regions overlap, an object's centroid
+        is adopted by whichever region was defined last.
+        """
+        if self._readonly:
+            raise StoreError("store opened read-only")
+        kids = store.nodes_in_bbox(self._conn, bbox_min, bbox_max, type_="object")
+        if self._encoder is not None:
+            feat = self._encoder.encode_text([label])[0]
+        elif kids:
+            feats = [store.node_feature(self._conn, k.id) for k in kids]
+            valid = [x for x in feats if x is not None and x.shape[0] == self._dim]
+            if valid:
+                f = np.mean(valid, axis=0)
+                nrm = float(np.linalg.norm(f))
+                feat = f / nrm if nrm > 0 else _unit_feature(self._dim)
+            else:
+                feat = _unit_feature(self._dim)
+        else:
+            feat = _unit_feature(self._dim)
+        centroid = tuple((bbox_min[i] + bbox_max[i]) / 2 for i in range(3))
+        t = max((k.t_last for k in kids), default=_now())
+
+        existing = self._conn.execute(
+            "SELECT id FROM nodes WHERE label=? AND type=? ORDER BY id LIMIT 1", (label, type_)
+        ).fetchone()
+        if existing is not None:
+            region_id = int(existing["id"])
+            for c in store.children(self._conn, region_id):
+                store.set_parent(self._conn, c.id, None)  # release stale membership
+            store.update_node(
+                self._conn,
+                region_id,
+                label=label,
+                labels=[(label, 1.0)],
+                confidence=1.0,
+                centroid=centroid,  # type: ignore[arg-type]
+                bbox_min=bbox_min,
+                bbox_max=bbox_max,
+                feature=feat,
+                n_obs=0,
+                t_last=t,
+            )
+        else:
+            region_id = store.insert_node(
+                self._conn,
+                type_=type_,
+                label=label,
+                labels=[(label, 1.0)],
+                confidence=1.0,
+                centroid=centroid,  # type: ignore[arg-type]
+                bbox_min=bbox_min,
+                bbox_max=bbox_max,
+                feature=feat,
+                n_obs=0,
+                t_first=t,
+                t_last=t,
+            )
+        for k in kids:
+            store.set_parent(self._conn, k.id, region_id)
+        self._conn.commit()
+        return region_id
+
+    def contents(self, region: int | str) -> list[NodeHit]:
+        """Children of a region — by node id or by region label."""
+        if isinstance(region, str):
+            row = self._conn.execute(
+                "SELECT id FROM nodes WHERE label=? AND type!='object' ORDER BY id LIMIT 1",
+                (region,),
+            ).fetchone()
+            if row is None:
+                return []
+            rid = int(row["id"])
+        else:
+            rid = region
+        return [_node_hit(n) for n in store.children(self._conn, rid)]
 
     def stats(self) -> StoreStats:
         return store.stats(self._conn)
