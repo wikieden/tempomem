@@ -3,6 +3,15 @@
 **Status:** draft / GPU-blocked. **Track:** DEV-PLAN Phase C (learned perception).
 **Depends on:** a CUDA box (Cosmos 3 Nano 16B / Super 64B) or a Cosmos NIM endpoint.
 
+**Built so far (CPU, schema-independent):**
+- ✅ `spatialmem.geometry` — `transform_points` / `oriented_box_corners` /
+  `world_aabb_from_obb` (camera-frame OBB → world AABB), pure numpy, unit-tested.
+- ✅ `spatialmem.ImageEncoder` protocol + `OpenClipEncoder.encode_image` — the
+  per-object feature path (Cosmos emits no embedding).
+
+**Still GPU-/schema-gated:** the Cosmos call + JSON `_parse_boxes` + the
+adapter wiring — held until the box schema is probed on real weights.
+
 ## Goal
 
 Let `add_frame(rgb, depth, pose)` use **NVIDIA Cosmos 3** as the perception
