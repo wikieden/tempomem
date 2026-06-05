@@ -66,6 +66,11 @@ All notable changes to SpatialMem are documented here. Format follows
   and traverses the relation edges, so the relations from `relate()` are
   answerable in natural language. Falls back to semantic/keyword when no
   relation phrase or anchor object matches.
+- **Change detection** — `moved(node_id)` returns how far an object travelled
+  across its observation trail (first→last). `changes(since_ts)` returns a
+  `ChangeSet(new, seen_again)` of nodes that first appeared or were re-observed
+  since a time. `stale(before_ts)` lists nodes not seen since then (candidate
+  "gone"). Temporal memory: "what moved / is new / hasn't been seen".
 
 ### Notes
 - Perception backend decided: `PerceptionAdapter` protocol + ConceptGraphs

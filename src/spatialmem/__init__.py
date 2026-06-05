@@ -46,6 +46,7 @@ __version__ = "0.1.0a1"
 __all__ = [
     "AdapterError",
     "BadDetectionError",
+    "ChangeSet",
     "CommitStats",
     "DatasetSource",
     "Detection",
@@ -76,6 +77,14 @@ class CommitStats:
     observations_committed: int
     nodes_after: int
     elapsed_ms: float
+
+
+@dataclass
+class ChangeSet:
+    """What changed in the memory since a timestamp."""
+
+    new: list[NodeHit]
+    seen_again: list[NodeHit]
 
 
 def _now() -> float:
@@ -570,6 +579,39 @@ class SpatialMemory:
         it over time" / "when was it last seen" (`history(id)[-1]`).
         """
         return store.observations_for_node(self._conn, node_id)
+
+    # ---- change detection ------------------------------------------------
+
+    def moved(self, node_id: int) -> float:
+        """Displacement (meters) of a node between its first and last
+        observation — how far the object travelled across sightings. 0 for a
+        node with fewer than two observations.
+        """
+        trail = store.observations_for_node(self._conn, node_id)
+        if len(trail) < 2:
+            return 0.0
+        a = np.asarray(trail[0].center_xyz)
+        b = np.asarray(trail[-1].center_xyz)
+        return float(np.linalg.norm(b - a))
+
+    def changes(self, since_ts: float) -> ChangeSet:
+        """Nodes new or re-observed at/after `since_ts`. `new` first appeared
+        then; `seen_again` existed before but was observed again since.
+        """
+        new: list[NodeHit] = []
+        seen_again: list[NodeHit] = []
+        for n in store.all_nodes(self._conn):
+            if n.t_first >= since_ts:
+                new.append(_node_hit(n))
+            elif n.t_last >= since_ts:
+                seen_again.append(_node_hit(n))
+        return ChangeSet(new=new, seen_again=seen_again)
+
+    def stale(self, before_ts: float) -> list[NodeHit]:
+        """Nodes not observed since `before_ts` — candidates for "gone"."""
+        return [
+            _node_hit(n) for n in store.all_nodes(self._conn) if n.t_last < before_ts
+        ]
 
     def stats(self) -> StoreStats:
         return store.stats(self._conn)
