@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS nodes (
     n_obs       INTEGER NOT NULL,
     t_first     REAL NOT NULL,
     t_last      REAL NOT NULL,
-    parent_id   INTEGER REFERENCES nodes(id)
+    parent_id   INTEGER REFERENCES nodes(id) ON DELETE SET NULL
 );
 CREATE INDEX IF NOT EXISTS idx_nodes_type ON nodes(type);
 CREATE INDEX IF NOT EXISTS idx_nodes_label ON nodes(label);

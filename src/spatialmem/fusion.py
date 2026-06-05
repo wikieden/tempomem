@@ -86,8 +86,9 @@ def _merge(
 
     labels = dict(node.labels)
     labels[obs.label] = labels.get(obs.label, 0.0) + obs.confidence
-    tot = sum(labels.values()) or 1.0
-    labels_norm = sorted(((k, v / tot) for k, v in labels.items()), key=lambda kv: (-kv[1], kv[0]))
+    # raw cumulative confidence mass per label — order-independent (addition
+    # commutes; no inter-merge renormalization that would drift by ingest order)
+    labels_norm = sorted(labels.items(), key=lambda kv: (-kv[1], kv[0]))
     canonical = labels_norm[0][0]
 
     conf = node.confidence + (1.0 - node.confidence) * obs.confidence * cfg.conf_gain
@@ -113,7 +114,7 @@ def _new_node(conn: sqlite3.Connection, obs: Observation) -> int:
         conn,
         type_="object",
         label=obs.label,
-        labels=[(obs.label, 1.0)],
+        labels=[(obs.label, obs.confidence)],  # raw mass; see _merge
         confidence=obs.confidence,
         centroid=obs.center_xyz,
         bbox_min=obs.bbox_min,
@@ -171,8 +172,7 @@ def _node_from_obs(conn: sqlite3.Connection, obs_list: list[Observation]) -> int
     labels: dict[str, float] = {}
     for o in obs_list:
         labels[o.label] = labels.get(o.label, 0.0) + o.confidence
-    tot = sum(labels.values()) or 1.0
-    labels_norm = sorted(((k, v / tot) for k, v in labels.items()), key=lambda kv: (-kv[1], kv[0]))
+    labels_norm = sorted(labels.items(), key=lambda kv: (-kv[1], kv[0]))
     node_id = store.insert_node(
         conn,
         type_="object",
@@ -267,8 +267,7 @@ def merge_nodes(conn: sqlite3.Connection, keep: store.NodeRow, drop: store.NodeR
     labels: dict[str, float] = dict(keep.labels)
     for lab, w in drop.labels:
         labels[lab] = labels.get(lab, 0.0) + w
-    s = sum(labels.values()) or 1.0
-    labels_norm = sorted(((k, v / s) for k, v in labels.items()), key=lambda kv: (-kv[1], kv[0]))
+    labels_norm = sorted(labels.items(), key=lambda kv: (-kv[1], kv[0]))
     store.update_node(
         conn,
         keep.id,

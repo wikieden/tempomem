@@ -47,7 +47,7 @@ def _vec_to_blob(v: np.ndarray) -> bytes:
 
 
 def _blob_to_vec(b: bytes) -> np.ndarray:
-    return np.frombuffer(b, dtype=np.float32)
+    return np.frombuffer(b, dtype=np.float32).copy()  # writable, owns its memory
 
 
 def ensure_episode(conn: sqlite3.Connection, session: str, ts: float) -> int:

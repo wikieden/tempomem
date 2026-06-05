@@ -103,8 +103,9 @@ def _find_object(conn: sqlite3.Connection, anchor_text: str) -> store.NodeRow | 
     for n in store.all_nodes(conn):
         if n.type != "object":
             continue
-        lab = n.label.lower()
-        if (lab in anchor_text or anchor_text in lab) and (
+        ll = n.label.lower()
+        # whole-word match so "on" doesn't hit "monitor" and "table" not "cable"
+        if re.search(rf"\b{re.escape(ll)}\b", anchor_text) and (
             best is None or len(n.label) > len(best.label)
         ):
             best = n

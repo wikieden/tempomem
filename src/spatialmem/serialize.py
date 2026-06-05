@@ -87,9 +87,9 @@ def to_prompt(
     for n in nodes:
         children.setdefault(n.parent_id, []).append(n)
     t_now = max((n.t_last for n in nodes), default=0.0)
-    lines = [f"SCENE (root={root}, ts={t_now:.1f})"]
+    header = f"SCENE (root={root}, ts={t_now:.1f})"
 
-    def emit(n: store.NodeRow, depth: int) -> None:
+    def emit(n: store.NodeRow, depth: int, out: list[str]) -> None:
         line = _fmt_node(n, depth)
         if relations:
             rels = ", ".join(
@@ -99,33 +99,43 @@ def to_prompt(
             )
             if rels:
                 line += f"  | {rels}"
-        lines.append(line)
+        out.append(line)
         for kid in sorted(children.get(n.id, []), key=lambda x: (-x.t_last, x.id)):
-            emit(kid, depth + 1)
+            emit(kid, depth + 1, out)
 
+    # One segment per top-level subtree (a region with its children, or a lone
+    # object), most-recent-first. Budgeting keeps/drops whole subtrees so a
+    # region never appears without its contents.
     if root is not None and root in by_id:
-        emit(by_id[root], 1)
+        tops = [by_id[root]]
     else:
         tops = sorted(children.get(None, []), key=lambda x: (-x.t_last, x.id))
-        for n in tops:
-            emit(n, 1)
+    segments: list[list[str]] = []
+    for n in tops:
+        seg: list[str] = []
+        emit(n, 1, seg)
+        segments.append(seg)
 
     if max_tokens is None:
-        return "\n".join(lines)
+        out = [header]
+        for seg in segments:
+            out.extend(seg)
+        return "\n".join(out)
 
     def _est(s: str) -> int:
         return max(1, len(s) // 4)  # ~4 chars/token
 
-    kept = [lines[0]]
-    used = _est(lines[0])
+    reserve = 12  # leave room for the omission marker so it always fits
+    kept = [header]
+    used = _est(header)
     dropped = 0
-    for ln in lines[1:]:
-        cost = _est(ln)
-        if used + cost <= max_tokens:
-            kept.append(ln)
+    for seg in segments:
+        cost = sum(_est(line) for line in seg)
+        if used + cost <= max_tokens - reserve:
+            kept.extend(seg)
             used += cost
         else:
-            dropped += 1
+            dropped += len(seg)
     if dropped:
         kept.append(f"  … ({dropped} more omitted)")
     return "\n".join(kept)

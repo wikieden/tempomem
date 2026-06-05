@@ -52,8 +52,9 @@ def try_enable(conn: sqlite3.Connection, embedding_dim: int, readonly: bool) -> 
         return False
     if readonly:
         return enabled(conn)
+    dim = int(embedding_dim)  # validated int — interpolated into the vec0 DDL
     conn.execute(
-        f"CREATE VIRTUAL TABLE IF NOT EXISTS node_vec USING vec0(emb float[{embedding_dim}] "
+        f"CREATE VIRTUAL TABLE IF NOT EXISTS node_vec USING vec0(emb float[{dim}] "
         f"distance_metric=cosine)"
     )
     _backfill(conn)

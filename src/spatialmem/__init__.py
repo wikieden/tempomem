@@ -655,9 +655,7 @@ class SpatialMemory:
 
     def stale(self, before_ts: float) -> list[NodeHit]:
         """Nodes not observed since `before_ts` — candidates for "gone"."""
-        return [
-            _node_hit(n) for n in store.all_nodes(self._conn) if n.t_last < before_ts
-        ]
+        return [_node_hit(n) for n in store.all_nodes(self._conn) if n.t_last < before_ts]
 
     def stats(self) -> StoreStats:
         return store.stats(self._conn)
