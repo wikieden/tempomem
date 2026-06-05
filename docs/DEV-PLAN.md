@@ -4,9 +4,10 @@ Concrete, sequenced execution plan layered on top of [03-ROADMAP.md](03-ROADMAP.
 The roadmap says *what milestones*; this says *what to build next and in what
 order*, given one hard constraint: **no GPU on the current dev box.**
 
-**Where we are (2026-06-04):** `v0.1.0a1` tagged, repo public, 52 tests / 95%
-cov, CI green. M0 ✅ · M1 ✅ · M2 🟡 (V-track + perception seam + viz done;
-learned perception P1/P3 blocked on CUDA).
+**Where we are (2026-06-05):** `v0.1.0a1` tagged, repo public, 52 tests / 95%
+cov, CI green; the memory-deepening + retrieval tracks are complete. M0 ✅ ·
+M1 ✅ · M2 🟡 (V-track + perception seam + viz done; learned perception P1/P3
+blocked on CUDA).
 
 ## Scope correction (2026-06-05) — we are a MEMORY system, not perception
 
@@ -109,9 +110,13 @@ first so the badges + install line in A2 are real.
 
 ## Immediate next 3
 
-1. **A1** — publish to PyPI (your call; I'll prep the exact commands + TestPyPI dry-run).
-2. **A2/A3** — badges + issue/PR templates (I can do now).
-3. **B1** — start the `ReplicaAdapter` (the demo unblock).
+1. **B1'** — real `ReplicaAdapter` over a downloaded Replica scene (GT masks +
+   depth + trajectory → the same detection stream `SyntheticScene` already
+   feeds). `DatasetSource` / `SyntheticScene` / `stream` (B1) are done; this
+   swaps the synthetic source for a real parser and is the demo unblock.
+2. **B5** — record the demo artifact (viz HTML of the final graph + asciinema
+   of the stream loop) once B1' lands.
+3. **A1** — publish to PyPI (your call; I'll prep the exact commands + TestPyPI dry-run).
 
 Open question for you: which Phase-B dataset — **Replica** (clean synthetic,
 small, easy license) or **ScanNet** (real scans, heavier, registration needed)?

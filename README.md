@@ -50,7 +50,15 @@ Runnable, no GPU: `python examples/01_quickstart.py` and `examples/02_query_and_
 | sqlite-vec ANN index (`[vec]`), linear fallback | ✅ |
 | `answer()` via BYO `Verbalizer` (OpenAI / Anthropic / Ollama) | ✅ |
 | `decay()` + `forget()` + `resplit()` memory hygiene | ✅ |
+| `consolidate()` + `salient()` memory consolidation | ✅ |
+| Hierarchy / rooms — `define_region()` + `contents()` | ✅ |
+| Spatial relations — `relate()` + `related()` (`near`/`on`/`under`) | ✅ |
+| Relational NL query — `query("what's on the table")` traverses edges | ✅ |
+| `update()` + `history()` (Mem0-style correction + observation trail) | ✅ |
+| Multi-session merge — `merge(other.smem)` | ✅ |
+| Change detection — `moved()` / `changes()` / `stale()` | ✅ |
 | `serialize(format="prompt"/"json")` for LLM hand-off | ✅ |
+| Token-budgeted prompt — `serialize(format="prompt", max_tokens=N)` | ✅ |
 | `recall_at_k` eval harness | ✅ |
 | Read-only HTML viewer — `spatialmem viz store.smem -o scene.html` | ✅ |
 | RGB-D `add_frame` via `PerceptionAdapter` protocol | ✅ seam; ConceptGraphs adapter WIP (CUDA) |

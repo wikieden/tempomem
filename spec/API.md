@@ -52,6 +52,16 @@ def commit(self, *, timeout_s: float = 30.0) -> CommitStats:
     """Flush queued observations through the arbiter and fsync."""
 ```
 
+`CommitStats` is the result of a flush:
+
+```python
+@dataclass
+class CommitStats:
+    observations_committed: int
+    nodes_after: int
+    elapsed_ms: float
+```
+
 `Detection` is a frozen dataclass:
 
 ```python
@@ -72,7 +82,7 @@ class Detection:
 
 ```python
 def query(self, text: str, *, k: int = 10,
-          intent: Literal["auto", "semantic", "spatial", "temporal"] = "auto"
+          intent: Literal["auto", "semantic", "spatial", "temporal", "relational"] = "auto"
           ) -> QueryResult: ...
     # "auto" routes by keyword heuristic; semantic/hybrid use the encoder when
     # configured, else label-keyword fallback. (k_hops subgraph: planned.)
@@ -212,6 +222,15 @@ def merge(self, other: str | os.PathLike, *, episode: str | None = None) -> Comm
     # space continues the memory. Embedding dims must match; regions not merged.
 ```
 
+`ChangeSet` is the result of `changes()`:
+
+```python
+@dataclass
+class ChangeSet:
+    new: list[NodeHit]
+    seen_again: list[NodeHit]
+```
+
 ## Configuration
 
 `SpatialMemory.open(..., config=SpatialMemConfig(...))`. All thresholds live on the config object, never as method kwargs:
@@ -247,6 +266,51 @@ class PerceptionAdapter(Protocol):       # spatialmem.perception
 Reference impls: `OpenClipEncoder` (`[clip]` extra). ConceptGraphs perception
 adapter is WIP (`[perception]`, CUDA).
 
+## Datasets
+
+Stream per-frame ground-truth detections into a store — no perception model or
+GPU. The same object across frames converges to one node through fusion.
+
+```python
+class DatasetSource(Protocol):           # spatialmem.datasets
+    def frames(self) -> Iterator[list[Detection]]: ...   # one list per frame
+
+def stream(mem: SpatialMemory, source: DatasetSource, *,
+           commit_every: int = 1,
+           episode: str | None = None) -> tuple[int, int]: ...
+    # Ingest every frame's detections into `mem`. commit() every `commit_every`
+    # frames (and once at the end). Returns (frames, observations).
+```
+
+`SyntheticScene` is a deterministic, GPU-free `DatasetSource`:
+
+```python
+@dataclass
+class SyntheticScene:                    # spatialmem.datasets
+    objects: list[tuple[str, tuple[float, float, float]]]  # (label, world center)
+    encoder: HashEncoder
+    n_frames: int = 12
+    noise_m: float = 0.02                # per-frame positional jitter
+    half_extent_m: float = 0.05          # half bbox extent
+    seed: int = 0
+    # Re-observes each object every frame with small jitter (a moving camera);
+    # streaming it converges each object to a single node.
+```
+
+`HashEncoder` is a deterministic fixture encoder (demos/tests only — same string
+always maps to the same unit vector; NOT real semantics):
+
+```python
+class HashEncoder:                       # spatialmem.datasets
+    def __init__(self, dim: int = 64) -> None: ...
+    @property
+    def dim(self) -> int: ...
+    def encode_text(self, texts: Sequence[str]) -> np.ndarray: ...  # (N, dim) L2-norm
+```
+
+A real `ReplicaAdapter` / `ScanNetAdapter` (parsing GT instance masks + depth)
+plugs into the same `DatasetSource` shape later.
+
 ## Errors
 
 ```
@@ -262,6 +326,7 @@ SpatialMemError
 ## Stability Promise (post v0.1.0)
 
 - `open`, `add_detections`, `add_frame`, `commit`, `query`, `serialize`, `close`, `Detection`, `NodeHit`, `QueryResult` → **stable**. SemVer-protected.
+- `merge`, `update`, `history`, `moved`, `changes`, `stale`, `consolidate`, `salient`, `define_region`, `contents`, `relate`, `related` → `experimental`. Shipped and tested, but signatures and semantics may change in any minor release until stabilized.
 - Everything else → `experimental`. Subject to change in any minor release until stabilized.
 
 ## What this API does NOT do

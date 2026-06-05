@@ -2,7 +2,7 @@
 
 Milestones are time-boxed, not feature-locked. If a milestone slips on scope, cut scope, don't slip time.
 
-**Status (2026-05-29):** M0 ✅ · M1 ✅ (`v0.1.0a1`) · M2 🟡 in progress (V-track + perception seam done; concrete RGB-D adapter + recorded demo blocked on a CUDA box). 49 tests, core install numpy-only. Per-milestone sprint breakdowns: [SPRINT-00](sprint/SPRINT-00.md) · [SPRINT-01](sprint/SPRINT-01.md) · [SPRINT-02](sprint/SPRINT-02.md).
+**Status (2026-06-05):** M0 ✅ · M1 ✅ (`v0.1.0a1`) · M2 🟡 in progress (V-track + perception seam done; concrete RGB-D adapter + recorded demo blocked on a CUDA box). 49 tests, core install numpy-only. Per-milestone sprint breakdowns: [SPRINT-00](sprint/SPRINT-00.md) · [SPRINT-01](sprint/SPRINT-01.md) · [SPRINT-02](sprint/SPRINT-02.md).
 
 Legend: ✅ done · 🟡 partial · ⛔ blocked · ⬜ not started.
 
@@ -40,6 +40,18 @@ Done (no GPU needed):
 - ✅ V5 eval harness — `bench.recall_at_k`
 - ✅ V6 `[clip]` + `[vec]` CI lanes
 - ✅ P0/P2 `PerceptionAdapter` protocol + `add_frame(rgb, depth, pose)` seam (stub-tested)
+
+Memory-deepening + retrieval (shipped after the V-track, no GPU needed):
+- ✅ Hierarchy / rooms — `define_region(...)` + `contents(region)` (objects nest under regions)
+- ✅ Spatial relations — `relate()` infers `near`/`on`/`under` edges + `related(node, rel=)`
+- ✅ In-place correction — `update(node_id, ...)` + `history(node_id)` observation trail
+- ✅ Relation-aware `serialize(format="prompt")` — appends each node's relation edges
+- ✅ Multi-session merge — `merge(other_smem)` folds another store's objects via fusion
+- ✅ Relational NL query — `query("what's on the table")` traverses relation edges
+- ✅ Change detection — `moved()` / `changes(since_ts)` / `stale(before_ts)`
+- ✅ Token-budgeted `serialize(format="prompt", max_tokens=N)` — bounded LLM payload
+- ✅ `consolidate()` + `salient(n)` — merge missed duplicates, rank by recency·conf·evidence
+- ✅ Dataset streaming — `DatasetSource` + `stream(mem, source)` + `SyntheticScene` (+ `bench.recall_at_k`)
 
 Blocked on a CUDA dev box:
 - ⛔ P1 concrete `ConceptGraphsAdapter` (SAM + Grounding DINO + OpenCLIP) behind `[perception]`
