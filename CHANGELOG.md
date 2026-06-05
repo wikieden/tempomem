@@ -75,6 +75,11 @@ All notable changes to SpatialMem are documented here. Format follows
   the output: nodes are emitted most-recent-first and the remainder dropped with
   an explicit `… (N more omitted)` marker (never silent). Keeps the LLM payload
   bounded on large scenes.
+- **`consolidate()` + `salient()`** — `consolidate()` merges near-duplicate
+  object nodes that fusion missed (separate sessions, sub-threshold), scoring
+  each pair like an observation and collapsing those over `tau_merge`
+  (deterministic; lowest id kept). `salient(n)` ranks nodes by
+  recency · confidence · evidence (n_obs) — what matters in a crowded memory.
 
 ### Notes
 - Perception backend decided: `PerceptionAdapter` protocol + ConceptGraphs

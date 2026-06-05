@@ -368,6 +368,45 @@ class SpatialMemory:
         self._conn.commit()
         return split, created
 
+    def consolidate(self) -> int:
+        """Merge near-duplicate object nodes that fusion missed (e.g. created in
+        separate sessions or just under threshold). Returns the number of merges.
+        """
+        if self._readonly:
+            raise StoreError("store opened read-only")
+        n = fusion.consolidate(self._conn, self._cfg.fusion)
+        self._conn.commit()
+        return n
+
+    def salient(self, *, n: int = 10) -> list[NodeHit]:
+        """Top-n nodes by salience = recency * confidence * evidence (n_obs).
+        Use to prioritize what matters in a crowded memory.
+        """
+        nodes = store.all_nodes(self._conn)
+        if not nodes:
+            return []
+        ts = [x.t_last for x in nodes]
+        lo, hi = min(ts), max(ts)
+        span = (hi - lo) or 1.0
+        scored = []
+        for nd in nodes:
+            rec = (nd.t_last - lo) / span
+            sal = (0.5 + 0.5 * rec) * nd.confidence * (1.0 + 0.1 * nd.n_obs)
+            scored.append((sal, nd))
+        scored.sort(key=lambda x: (-x[0], x[1].id))
+        return [
+            NodeHit(
+                id=nd.id,
+                label=nd.label,
+                center_xyz=nd.centroid,
+                confidence=nd.confidence,
+                score=float(sal),
+                t_first=nd.t_first,
+                t_last=nd.t_last,
+            )
+            for sal, nd in scored[:n]
+        ]
+
     # ---- hierarchy -------------------------------------------------------
 
     def define_region(

@@ -246,3 +246,84 @@ def ingest_observation(
     if obs.confidence < cfg.tau_obs:
         return None
     return _new_node(conn, obs)
+
+
+def merge_nodes(conn: sqlite3.Connection, keep: store.NodeRow, drop: store.NodeRow) -> None:
+    """Fold `drop` into `keep` (obs-weighted centroid/feature, bbox union, merged
+    label distribution), reassign drop's observations, then delete drop.
+    """
+    kf = store.node_feature(conn, keep.id)
+    df = store.node_feature(conn, drop.id)
+    assert kf is not None and df is not None
+    wa, wb = max(keep.n_obs, 1), max(drop.n_obs, 1)
+    tot = wa + wb
+    cen = (wa * np.asarray(keep.centroid) + wb * np.asarray(drop.centroid)) / tot
+    feat = wa * kf + wb * df
+    nrm = float(np.linalg.norm(feat))
+    if nrm > 0:
+        feat = feat / nrm
+    bbox_min = tuple(min(keep.bbox_min[i], drop.bbox_min[i]) for i in range(3))
+    bbox_max = tuple(max(keep.bbox_max[i], drop.bbox_max[i]) for i in range(3))
+    labels: dict[str, float] = dict(keep.labels)
+    for lab, w in drop.labels:
+        labels[lab] = labels.get(lab, 0.0) + w
+    s = sum(labels.values()) or 1.0
+    labels_norm = sorted(((k, v / s) for k, v in labels.items()), key=lambda kv: (-kv[1], kv[0]))
+    store.update_node(
+        conn,
+        keep.id,
+        label=labels_norm[0][0],
+        labels=labels_norm,
+        confidence=max(keep.confidence, drop.confidence),
+        centroid=(float(cen[0]), float(cen[1]), float(cen[2])),
+        bbox_min=bbox_min,  # type: ignore[arg-type]
+        bbox_max=bbox_max,  # type: ignore[arg-type]
+        feature=feat,
+        n_obs=keep.n_obs + drop.n_obs,
+        t_last=max(keep.t_last, drop.t_last),
+    )
+    for o in store.observations_for_node(conn, drop.id):
+        store.relink_observation(conn, keep.id, o.id, o.ts)
+    store.delete_node(conn, drop.id)
+
+
+def consolidate(conn: sqlite3.Connection, cfg: FusionConfig | None = None) -> int:
+    """Merge near-duplicate object nodes that fusion missed (e.g. across sessions
+    or just under threshold). Scores each pair as if one were an observation of
+    the other; merges when score >= tau_merge. Returns the number of merges.
+
+    Deterministic: lowest-id node is kept; iterates until no pair merges.
+    """
+    cfg = cfg or FusionConfig()
+    merged = 0
+    while True:
+        nodes = [n for n in store.all_nodes(conn) if n.type == "object"]
+        did = False
+        for i, a in enumerate(nodes):
+            af = store.node_feature(conn, a.id)
+            if af is None:
+                continue
+            for b in nodes[i + 1 :]:
+                bf = store.node_feature(conn, b.id)
+                if bf is None:
+                    continue
+                probe = Observation(
+                    id=-1,
+                    episode_id=0,
+                    ts=b.t_last,
+                    label=b.label,
+                    confidence=b.confidence,
+                    center_xyz=b.centroid,
+                    bbox_min=b.bbox_min,
+                    bbox_max=b.bbox_max,
+                    feature=bf,
+                )
+                if score(probe, a, af, cfg) >= cfg.tau_merge:
+                    merge_nodes(conn, a, b)
+                    merged += 1
+                    did = True
+                    break
+            if did:
+                break
+        if not did:
+            return merged

@@ -134,6 +134,14 @@ def resplit(self) -> tuple[int, int]: ...
     # Split nodes whose member observations form two separated clusters
     # (config tau_split_m / min_split_obs). Returns (nodes_split, new_nodes).
 
+def consolidate(self) -> int: ...
+    # Merge near-duplicate object nodes fusion missed (separate sessions /
+    # sub-threshold). Scores each pair like an observation; merges over
+    # tau_merge. Deterministic (lowest id kept). Returns merge count.
+
+def salient(self, *, n: int = 10) -> list[NodeHit]: ...
+    # Top-n nodes by salience = recency * confidence * evidence (n_obs).
+
 def stats(self) -> StoreStats: ...
 ```
 
