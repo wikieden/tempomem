@@ -120,7 +120,7 @@ tokenizer); it drops whole top-level subtrees most-recent-first with a
 `(N more omitted)` marker (a region never appears without its contents). Leave
 headroom against the model's real tokenizer.
 
-### C3 · LLM ↔ SpatialMem (cortex queries memory as tools) — *proposed wrapper over shipped methods*
+### C3 · LLM ↔ SpatialMem (cortex queries memory as tools) — *shipped: `spatialmem.SpatialMemTools`*
 
 C2 and C3 are two access patterns of **one** memory-access seam: hand the whole
 serialized graph (C2) for small scenes, or let the LLM pull on demand (C3) for
@@ -336,7 +336,8 @@ observation/detection → Cosmos clip. Hook into existing `mem.stats()` /
 | P0 | `CosmosReasonVerbalizer` (answer backend, Cosmos Reason 2 today) | ✅ shipped |
 | P0 | C4-foundation: `geometry` + `ImageEncoder` | ✅ shipped |
 | P1 | `Cosmos3PerceptionAdapter` (C1) — needs GPU + schema probe + `aux` column | ⬜ |
-| P2 | memory-as-tools / MCP wrapper (C3) with the schemas above | ⬜ |
+| P2 | memory-as-tools (C3) — `SpatialMemTools` (schemas + dispatch, validated args) | ✅ shipped |
+| P2+ | thin MCP server wrapping `SpatialMemTools` | ⬜ |
 | P3 | active-perception loop (C4) — bounded | ⬜ |
 | P4 | end-to-end agent demo: stream scene → multi-turn planning with memory | ⬜ |
 

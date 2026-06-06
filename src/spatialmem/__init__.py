@@ -23,6 +23,7 @@ from ._errors import (
     SchemaMismatchError,
     SpatialMemError,
     StoreError,
+    ToolError,
 )
 from .config import FusionConfig, SpatialMemConfig
 from .cosmos import CosmosReasonVerbalizer
@@ -39,6 +40,7 @@ from .query import semantic_keyword as _semantic_keyword
 from .query import semantic_vec as _semantic_vec
 from .query import spatial as _spatial
 from .store import StoreStats
+from .tools import SpatialMemTools
 from .verbalize import Verbalizer
 from .verbalize import build_answer_prompt as _build_answer_prompt
 
@@ -65,10 +67,12 @@ __all__ = [
     "SchemaMismatchError",
     "SpatialMemConfig",
     "SpatialMemError",
+    "SpatialMemTools",
     "SpatialMemory",
     "StoreError",
     "StoreStats",
     "SyntheticScene",
+    "ToolError",
     "Verbalizer",
     "__version__",
     "stream",
@@ -159,6 +163,7 @@ class SpatialMemory:
 
     def close(self) -> None:
         if self._conn is not None:
+            self._flush_pending()  # fuse staged obs before the final commit
             self._conn.commit()
             self._conn.close()
 
@@ -252,6 +257,24 @@ class SpatialMemory:
             elapsed_ms=(_now() - t0) * 1000.0,
         )
 
+    def _flush_pending(self) -> None:
+        """Fuse + persist any staged observations before a maintenance commit.
+
+        Fuse-before-persist invariant: `add_detections()`/`add_frame()` stage
+        observation rows in `self._pending` that are not yet linked to a node
+        (fusion is deferred to `commit()`). Every maintenance/structural mutator
+        below issues its own `conn.commit()`; because the sqlite connection runs
+        in implicit-transaction mode, that commit would flush the staged rows to
+        disk *unfused* — leaving orphan observations on a crash and showing a
+        half-ingested store to whatever ran in between. Draining `_pending`
+        through `commit()` first guarantees the store is never persisted with an
+        observation that is not linked to a node, and that maintenance always
+        runs against a fully fused store. `commit()` is the sole drainer of
+        `_pending`; no mutating call is valid while observations are pending.
+        """
+        if self._pending:
+            self.commit()
+
     # ---- query -----------------------------------------------------------
 
     def query(self, text: str, *, k: int = 10, intent: str = "auto") -> QueryResult:
@@ -331,6 +354,7 @@ class SpatialMemory:
     # ---- maintenance -----------------------------------------------------
 
     def forget(self, node_id: int) -> None:
+        self._flush_pending()
         store.delete_node(self._conn, node_id)
         self._conn.commit()
 
@@ -343,6 +367,7 @@ class SpatialMemory:
         """
         if self._readonly:
             raise StoreError("store opened read-only")
+        self._flush_pending()
         result = store.decay_and_prune(
             self._conn,
             now=now if now is not None else _now(),
@@ -360,6 +385,7 @@ class SpatialMemory:
         """
         if self._readonly:
             raise StoreError("store opened read-only")
+        self._flush_pending()
         node_ids = [n.id for n in store.all_nodes(self._conn)]
         split = 0
         created = 0
@@ -377,6 +403,7 @@ class SpatialMemory:
         """
         if self._readonly:
             raise StoreError("store opened read-only")
+        self._flush_pending()
         n = fusion.consolidate(self._conn, self._cfg.fusion)
         self._conn.commit()
         return n
@@ -434,6 +461,7 @@ class SpatialMemory:
         """
         if self._readonly:
             raise StoreError("store opened read-only")
+        self._flush_pending()
         kids = store.nodes_in_bbox(self._conn, bbox_min, bbox_max, type_="object")
         if self._encoder is not None:
             feat = self._encoder.encode_text([label])[0]
@@ -513,6 +541,7 @@ class SpatialMemory:
         """
         if self._readonly:
             raise StoreError("store opened read-only")
+        self._flush_pending()
         n = relations.infer(self._conn, near_m=near_m, on_gap_m=on_gap_m)
         self._conn.commit()
         return n
@@ -556,6 +585,7 @@ class SpatialMemory:
         """
         if self._readonly:
             raise StoreError("store opened read-only")
+        self._flush_pending()
         n = store.get_node(self._conn, node_id)
         if n is None:
             raise StoreError(f"node {node_id} not found")

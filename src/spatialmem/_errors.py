@@ -29,3 +29,7 @@ class QueryError(SpatialMemError):
 
 class StoreError(SpatialMemError):
     """Persistence-layer failure."""
+
+
+class ToolError(SpatialMemError):
+    """LLM tool dispatch failed (unknown tool or bad arguments)."""
