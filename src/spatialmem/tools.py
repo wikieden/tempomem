@@ -161,9 +161,7 @@ _SCHEMAS: list[dict[str, Any]] = [
         "description": "Nodes new or re-observed since a timestamp (float epoch seconds).",
         "parameters": {
             "type": "object",
-            "properties": {
-                "since_ts": {"type": "number", "description": "float epoch seconds"}
-            },
+            "properties": {"since_ts": {"type": "number", "description": "float epoch seconds"}},
             "required": ["since_ts"],
         },
     },

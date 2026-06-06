@@ -16,9 +16,7 @@ EXPECTED = {
 
 
 def _seed(mem):
-    mem.add_detections(
-        [make_det("mug", (1.0, 0.0, 0.9), 1), make_det("table", (1.0, 0.0, 0.4), 2)]
-    )
+    mem.add_detections([make_det("mug", (1.0, 0.0, 0.9), 1), make_det("table", (1.0, 0.0, 0.4), 2)])
     mem.commit()
 
 
