@@ -91,6 +91,10 @@ Runs on Colab / a rented cloud GPU — parallel to B/D, not blocking.
 > Path-A companion (`CosmosReasonVerbalizer`, the Cosmos answer brain) already
 > shipped — see `spatialmem.cosmos`. C4 is the path-B eyes; both lean on the same
 > Cosmos 3 family. C4 needs an `Encoder.encode_image` addition (see design doc).
+>
+> Full system design — how Cosmos 3 + SpatialMem + an LLM compose into one
+> embodied "brain" (contracts, topologies, concurrency, security, eval):
+> [design/cosmos3-spatialmem-llm-brain.md](design/cosmos3-spatialmem-llm-brain.md).
 
 ## Phase D — M3 reach (mostly no GPU)
 
