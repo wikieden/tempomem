@@ -33,23 +33,6 @@ class Encoder(Protocol):
     def encode_text(self, texts: Sequence[str]) -> np.ndarray: ...
 
 
-@runtime_checkable
-class ImageEncoder(Protocol):
-    """Maps image crops into the store's embedding space.
-
-    A perception adapter that only emits boxes (e.g. `Cosmos3PerceptionAdapter`)
-    encodes each object's image crop to get the per-object feature `Detection`
-    requires. `encode_image` returns an (N, dim) float32 array, L2-normalized
-    per row, in the SAME space as the encoder's `encode_text` so semantic query
-    still aligns. Images are (H, W, 3) uint8 RGB arrays.
-    """
-
-    @property
-    def dim(self) -> int: ...
-
-    def encode_image(self, images: Sequence[np.ndarray]) -> np.ndarray: ...
-
-
 def l2_normalize(x: np.ndarray) -> np.ndarray:
     x = np.asarray(x, dtype=np.float32)
     n = np.linalg.norm(x, axis=-1, keepdims=True)
@@ -77,7 +60,7 @@ class OpenClipEncoder:
                 "OpenClipEncoder needs the 'clip' extra: pip install spatialmem[clip]"
             ) from e
         self._torch = torch
-        self._model, _, self._preprocess = open_clip.create_model_and_transforms(
+        self._model, _, _ = open_clip.create_model_and_transforms(
             model_name, pretrained=pretrained, device=device
         )
         self._model.eval()
@@ -94,15 +77,4 @@ class OpenClipEncoder:
         toks = self._tokenizer(list(texts)).to(self._device)
         with torch.no_grad():
             feats = self._model.encode_text(toks)
-        return l2_normalize(feats.cpu().numpy())
-
-    def encode_image(self, images: Sequence[np.ndarray]) -> np.ndarray:  # pragma: no cover
-        from PIL import Image
-
-        torch = self._torch
-        batch = torch.stack(
-            [self._preprocess(Image.fromarray(np.asarray(im, dtype=np.uint8))) for im in images]
-        ).to(self._device)
-        with torch.no_grad():
-            feats = self._model.encode_image(batch)
         return l2_normalize(feats.cpu().numpy())

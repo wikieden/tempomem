@@ -28,7 +28,7 @@ from ._errors import (
 from .config import FusionConfig, SpatialMemConfig
 from .cosmos import CosmosReasonVerbalizer
 from .datasets import DatasetSource, HashEncoder, SyntheticScene, stream
-from .encoders import Encoder, ImageEncoder
+from .encoders import Encoder
 from .frame import Detection, Observation
 from .perception import PerceptionAdapter
 from .query import NodeHit, QueryResult
@@ -57,7 +57,6 @@ __all__ = [
     "Encoder",
     "FusionConfig",
     "HashEncoder",
-    "ImageEncoder",
     "IngestError",
     "NodeHit",
     "Observation",

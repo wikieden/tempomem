@@ -2,10 +2,11 @@
 
 **Status:** design / forward-looking (v2, post adversarial review).
 **Audience:** integrators wiring SpatialMem into an embodied or video-understanding agent.
-**Companion docs:** [cosmos3-perception-adapter.md](cosmos3-perception-adapter.md)
-(the perception seam), [../02-ARCHITECTURE.md](../02-ARCHITECTURE.md) (SpatialMem
+**Companion docs:** [../02-ARCHITECTURE.md](../02-ARCHITECTURE.md) (SpatialMem
 internals), [../01-POSITIONING.md](../01-POSITIONING.md) (why the memory layer
-is the missing piece).
+is the missing piece). Concrete perception (the `Cosmos3PerceptionAdapter`, the
+camera→world geometry lift, image-crop encoding) lives in the separate companion
+repo **`spatialmem-perception`** — core does not do perception.
 
 > Reviewed by an adversarial critic panel (architecture / API-accuracy /
 > completeness). Corrections folded: API signatures aligned to shipped code,
@@ -90,15 +91,16 @@ contract (§6).
 
 ## 4. Interface contracts
 
-### C1 · Cosmos 3 → SpatialMem (perception → memory) — *shipped seam, adapter WIP*
+### C1 · Cosmos 3 → SpatialMem (perception → memory) — *seam in core; adapter in `spatialmem-perception`*
 
-`Cosmos3PerceptionAdapter` implements the existing `PerceptionAdapter` seam.
+Core ships only the `PerceptionAdapter` protocol (`add_frame`). The concrete
+`Cosmos3PerceptionAdapter` lives in the companion repo **`spatialmem-perception`**:
 Cosmos sees **RGB** and emits structured **camera-frame** 3D boxes (JSON:
-`label, center, size, orientation`) and can *estimate* metric ego-pose. The
+`label, center, size, orientation`) and can *estimate* metric ego-pose; the
 adapter lifts each box to a world-frame `Detection` (using the caller-supplied
 pose where available, see §7) and attaches a CLIP-crop feature — Cosmos emits no
-per-object embedding. Full spec + open questions:
-[cosmos3-perception-adapter.md](cosmos3-perception-adapter.md).
+per-object embedding. The camera→world geometry lift and the image-crop encoder
+also live in that companion repo.
 
 ```python
 # shipped API (adapter is the WIP piece):
@@ -333,9 +335,8 @@ observation/detection → Cosmos clip. Hook into existing `mem.stats()` /
 
 | Phase | Deliverable | Status |
 |---|---|---|
-| P0 | `CosmosReasonVerbalizer` (answer backend, Cosmos Reason 2 today) | ✅ shipped |
-| P0 | C4-foundation: `geometry` + `ImageEncoder` | ✅ shipped |
-| P1 | `Cosmos3PerceptionAdapter` (C1) — needs GPU + schema probe + `aux` column | ⬜ |
+| P0 | `CosmosReasonVerbalizer` (answer backend, Cosmos Reason 2 today) | ✅ shipped (core) |
+| P1 | `Cosmos3PerceptionAdapter` (C1) + geometry lift + `ImageEncoder` — needs GPU + schema probe | ⬜ in `spatialmem-perception` |
 | P2 | memory-as-tools (C3) — `SpatialMemTools` (schemas + dispatch, validated args) | ✅ shipped |
 | P2+ | thin MCP server wrapping `SpatialMemTools` | ⬜ |
 | P3 | active-perception loop (C4) — bounded | ⬜ |

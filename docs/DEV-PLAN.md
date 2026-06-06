@@ -77,23 +77,30 @@ The unblock. Ground-truth perception adapter → end-to-end demo.
 5/5. Remaining: swap the synthetic source for a real Replica parser (B1') and
 record the artifact (B5). P3 parity vs ConceptGraphs waits on a GPU.
 
-## Phase C — Learned perception (needs GPU, when available)
+## Phase C — Learned perception → companion repo `spatialmem-perception`
 
-Runs on Colab / a rented cloud GPU — parallel to B/D, not blocking.
+**Scope decision (2026-06-06):** SpatialMem core does **not** do perception. It
+ships only the BYO seam — the `PerceptionAdapter` protocol (`add_frame`) — and
+stays numpy-only. All concrete perception (open-vocab detectors, depth/pose
+camera→world lift, image-crop feature encoding) lives in a **separate companion
+project, `spatialmem-perception`**, which depends on `spatialmem`. Perception is
+a peripheral, not a core deliverable.
+
+Companion-repo backlog (needs GPU; tracked in `spatialmem-perception`, not here):
 
 | ID | Task | Output |
 |---|---|---|
-| C1 | `ConceptGraphsAdapter` (SAM + Grounding DINO + OpenCLIP) behind `[perception]`, same `PerceptionAdapter` seam | real open-vocab perception |
-| C2 | P3 parity: object recall of C1 vs B1 GT on shared scenes, within ±10% | quality proof |
-| C3 | Swap demo from GT to learned perception; re-record | "real" demo |
-| C4 | `Cosmos3PerceptionAdapter` — NVIDIA Cosmos 3 Reasoner (structured camera-frame 3D boxes + metric ego-pose) → world-frame `Detection` + CLIP-crop feature. Design: [design/cosmos3-perception-adapter.md](design/cosmos3-perception-adapter.md) | Cosmos-native perception (alt to C1) |
+| C1 | `ConceptGraphsAdapter` (SAM + Grounding DINO + OpenCLIP) | open-vocab perception |
+| C2 | `Cosmos3PerceptionAdapter` — Cosmos 3 Reasoner 3D boxes + ego-pose → world `Detection` + CLIP-crop feature | Cosmos-native perception |
+| C3 | parity: detector recall vs GT, within ±10% | quality proof |
+| C4 | record the demo with learned perception | "real" demo |
 
-> Path-A companion (`CosmosReasonVerbalizer`, the Cosmos answer brain) already
-> shipped — see `spatialmem.cosmos`. C4 is the path-B eyes; both lean on the same
-> Cosmos 3 family. C4 needs an `Encoder.encode_image` addition (see design doc).
->
-> Full system design — how Cosmos 3 + SpatialMem + an LLM compose into one
-> embodied "brain" (contracts, topologies, concurrency, security, eval):
+The companion repo owns the geometry cam→world lift, the `ImageEncoder` seam +
+CLIP image encoder, and every concrete adapter. Core keeps only the protocol.
+
+> Path-A `CosmosReasonVerbalizer` (the Cosmos **answer** brain) shipped in core —
+> see `spatialmem.cosmos`; it is an LLM verbalizer, **not** perception. Full
+> system design (Cosmos 3 + SpatialMem + LLM "brain", contracts/topologies/eval):
 > [design/cosmos3-spatialmem-llm-brain.md](design/cosmos3-spatialmem-llm-brain.md).
 
 ## Phase D — M3 reach (mostly no GPU)
