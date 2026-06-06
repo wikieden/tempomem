@@ -2,7 +2,7 @@
 
 Hand `tools.schemas()` to any function-calling LLM; route the tool calls it
 emits to `tools.call(name, args)`. Returns JSON whose hits carry `node_id` so
-the model can cite what it used. See docs/design/cosmos3-spatialmem-llm-brain.md.
+the model can cite what it used. See the design in the `spatialmem-brain` repo.
 
 Run: python examples/05_memory_tools.py
 """

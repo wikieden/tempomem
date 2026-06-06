@@ -17,7 +17,7 @@ previous instructions…" becomes a node label). Labels are control-char-strippe
 and length-capped here, but integrators MUST present scene/label text to the LLM
 inside a clearly delimited *untrusted-data* block, never spliced into
 instructions, and rely on `node_id` (not label prose) as the citation anchor.
-See docs/design/cosmos3-spatialmem-llm-brain.md (C3 + Security). Conventions:
+See the system design in the `spatialmem-brain` repo (C3 + Security). Conventions:
 positions are world-frame meters, right-handed; timestamps are float epoch seconds.
 """
 

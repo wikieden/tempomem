@@ -98,10 +98,11 @@ Companion-repo backlog (needs GPU; tracked in `spatialmem-perception`, not here)
 The companion repo owns the geometry cam→world lift, the `ImageEncoder` seam +
 CLIP image encoder, and every concrete adapter. Core keeps only the protocol.
 
-> Path-A `CosmosReasonVerbalizer` (the Cosmos **answer** brain) shipped in core —
-> see `spatialmem.cosmos`; it is an LLM verbalizer, **not** perception. Full
-> system design (Cosmos 3 + SpatialMem + LLM "brain", contracts/topologies/eval):
-> [design/cosmos3-spatialmem-llm-brain.md](design/cosmos3-spatialmem-llm-brain.md).
+> The **brain** layer — `CosmosReasonVerbalizer`, the Reasoner/Brain
+> orchestration, and the full system design (Cosmos 3 + SpatialMem + LLM,
+> contracts/topologies/eval) — lives in its own companion repo
+> **`spatialmem-brain`**. Core keeps only the `Verbalizer` protocol + `answer()`
+> seam and `SpatialMemTools` (memory-as-tools).
 
 ## Phase D — M3 reach (mostly no GPU)
 
