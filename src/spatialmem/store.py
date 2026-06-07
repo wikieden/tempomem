@@ -57,7 +57,8 @@ def ensure_episode(conn: sqlite3.Connection, session: str, ts: float) -> int:
     if row is not None:
         return int(row["id"])
     cur = conn.execute("INSERT INTO episodes(session, start_ts) VALUES(?, ?)", (session, ts))
-    return int(cur.lastrowid)
+    assert cur.lastrowid is not None  # INSERT always assigns a rowid
+    return cur.lastrowid
 
 
 def insert_observation(
@@ -101,7 +102,8 @@ def insert_observation(
             json.dumps(aux) if aux else None,
         ),
     )
-    return int(cur.lastrowid)
+    assert cur.lastrowid is not None  # INSERT always assigns a rowid
+    return cur.lastrowid
 
 
 def insert_node(
@@ -149,7 +151,8 @@ def insert_node(
             parent_id,
         ),
     )
-    node_id = int(cur.lastrowid)
+    assert cur.lastrowid is not None  # INSERT always assigns a rowid
+    node_id = cur.lastrowid
     _vec.upsert(conn, node_id, feature)
     return node_id
 

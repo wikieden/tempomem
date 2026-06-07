@@ -81,6 +81,15 @@ All notable changes to SpatialMem are documented here. Format follows
   (deterministic; lowest id kept). `salient(n)` ranks nodes by
   recency · confidence · evidence (n_obs) — what matters in a crowded memory.
 
+### Fixed
+- **Type-checker clean (`pyright` 0 errors on the core).** `_opt_int` now falls
+  back to its default on an explicit JSON `null` (a tool call with `"k": null`
+  uses the default instead of leaking `None` downstream) and is `@overload`-typed
+  (`int` default → `int`); `insert_*` assert the always-present `lastrowid`;
+  `connect(path=...)` accepts `str | os.PathLike[str]`; optional-extra imports
+  (`open_clip` / `torch` / `sqlite_vec`) carry guarded `reportMissingImports`
+  ignores.
+
 ### Notes
 - Perception backend decided: `PerceptionAdapter` protocol + ConceptGraphs
   (SAM/GroundingDINO/OpenCLIP) as first adapter; no NVIDIA model as default

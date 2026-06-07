@@ -43,9 +43,7 @@ def test_decay_between_add_and_commit_fuses_first(mem) -> None:
 def test_consolidate_between_add_and_commit_keeps_linkage(mem) -> None:
     # (a, variant) consolidate interleaved before commit must still leave every
     # observation linked to a node.
-    mem.add_detections(
-        [make_det("mug", (1.0, 0.0, 0.9), 1), make_det("sink", (5.0, 0.0, 0.0), 2)]
-    )
+    mem.add_detections([make_det("mug", (1.0, 0.0, 0.9), 1), make_det("sink", (5.0, 0.0, 0.0), 2)])
     mem.consolidate()
     assert mem.stats().n_nodes == 2
     assert _orphan_count(mem._conn) == 0

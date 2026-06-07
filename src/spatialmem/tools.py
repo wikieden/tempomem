@@ -24,7 +24,7 @@ positions are world-frame meters, right-handed; timestamps are float epoch secon
 from __future__ import annotations
 
 import math
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, overload
 
 from ._errors import ToolError
 
@@ -64,13 +64,17 @@ def _require(args: dict[str, Any], key: str, types: type | tuple[type, ...]) -> 
     return val
 
 
+@overload
+def _opt_int(args: dict[str, Any], key: str, default: int, *, lo: int, hi: int) -> int: ...
+@overload
+def _opt_int(args: dict[str, Any], key: str, default: None, *, lo: int, hi: int) -> int | None: ...
 def _opt_int(
     args: dict[str, Any], key: str, default: int | None, *, lo: int, hi: int
 ) -> int | None:
-    """Bounded int from untrusted args. Absent key → `default`; bad/out-of-range → ToolError."""
+    """Bounded int from untrusted args. Absent/null → `default`; bad/out-of-range → ToolError."""
     v = args.get(key, default)
     if v is None:
-        return None
+        return default
     if isinstance(v, bool):
         raise ToolError(f"{key!r} must be an integer")
     try:

@@ -18,7 +18,8 @@ import numpy as np
 
 def _load_extension(conn: sqlite3.Connection) -> bool:
     try:
-        import sqlite_vec
+        # reason: optional [vec] extra (sqlite-vec)
+        import sqlite_vec  # pyright: ignore[reportMissingImports]
     except ImportError:
         return False
     try:
@@ -41,7 +42,8 @@ def enabled(conn: sqlite3.Connection) -> bool:
 
 
 def _serialize(feature: np.ndarray) -> bytes:
-    import sqlite_vec
+    # reason: optional [vec] extra (sqlite-vec)
+    import sqlite_vec  # pyright: ignore[reportMissingImports]
 
     return sqlite_vec.serialize_float32(np.asarray(feature, dtype=np.float32).reshape(-1).tolist())
 

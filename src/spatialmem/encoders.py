@@ -53,8 +53,9 @@ class OpenClipEncoder:
         device: str = "cpu",
     ) -> None:
         try:
-            import open_clip
-            import torch
+            # reason: optional [clip] extra; guarded by this try/except
+            import open_clip  # pyright: ignore[reportMissingImports]
+            import torch  # pyright: ignore[reportMissingImports]
         except ImportError as e:  # pragma: no cover - exercised only without extra
             raise ImportError(
                 "OpenClipEncoder needs the 'clip' extra: pip install spatialmem[clip]"

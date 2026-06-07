@@ -5,6 +5,7 @@ M0 uses BLOB float32 vectors and stdlib sqlite. See spec/SCHEMA.md.
 
 from __future__ import annotations
 
+import os
 import sqlite3
 from importlib import import_module
 from pathlib import Path
@@ -16,7 +17,7 @@ CREATOR_VERSION = "0.1.0a1"
 
 
 def connect(
-    path: str | Path, *, embedding_dim: int, readonly: bool, create: bool
+    path: str | os.PathLike[str], *, embedding_dim: int, readonly: bool, create: bool
 ) -> sqlite3.Connection:
     p = Path(path)
     if not create and not p.exists():
