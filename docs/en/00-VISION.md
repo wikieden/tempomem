@@ -1,4 +1,8 @@
+> 🌐 **English** · [中文](../zh/00-VISION.md)
+
 # 00 · Vision
+
+> 单包（记忆核）愿景。系统级（SpatialRobot 三层整体）愿景见 [../../../docs/en/VISION.md](../../../docs/en/VISION.md)。
 
 ## One-Liner
 

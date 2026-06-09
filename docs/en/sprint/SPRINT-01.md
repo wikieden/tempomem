@@ -1,6 +1,8 @@
+> 🌐 **English** · [中文](../../zh/sprint/SPRINT-01.md)
+
 # Sprint 01 · MVP — Real Fusion + Semantic Retrieval (M1)
 
-**Goal:** Replace the M0 node-per-observation stub with the real arbiter from [FUSION-ARBITER.md](../../spec/FUSION-ARBITER.md). Two sightings of the same object converge to **one** node with aggregated geometry/features. This is the value ConceptGraphs' single-shot pipeline can't deliver: incremental, persistent dedup.
+**Goal:** Replace the M0 node-per-observation stub with the real arbiter from [FUSION-ARBITER.md](../../../spec/FUSION-ARBITER.md). Two sightings of the same object converge to **one** node with aggregated geometry/features. This is the value ConceptGraphs' single-shot pipeline can't deliver: incremental, persistent dedup.
 
 **Exit:** quickstart kitchen (mug seen twice) → mug is ONE node with `n_obs=2`; determinism test green; coverage ≥ 75% on `fusion`.
 

@@ -1,10 +1,27 @@
+> 🌐 **English** · [中文](../zh/03-ROADMAP.md)
+
 # 03 · Roadmap
 
 Milestones are time-boxed, not feature-locked. If a milestone slips on scope, cut scope, don't slip time.
 
-**Status (2026-06-05):** M0 ✅ · M1 ✅ (`v0.1.0a1`) · M2 🟡 in progress (V-track + perception seam done; concrete RGB-D adapter + recorded demo blocked on a CUDA box). 49 tests, core install numpy-only. Per-milestone sprint breakdowns: [SPRINT-00](sprint/SPRINT-00.md) · [SPRINT-01](sprint/SPRINT-01.md) · [SPRINT-02](sprint/SPRINT-02.md).
+**Status (2026-06-08):** M0 ✅ · M1 ✅ (`v0.1.0a1`) · M2 🟡 in progress (V-track + perception seam done; concrete RGB-D adapter + recorded demo blocked on a CUDA box). 155 tests across the workspace (core 120 / brain 19 / perception 16), core install numpy-only. Per-milestone sprint breakdowns: [SPRINT-00](sprint/SPRINT-00.md) · [SPRINT-01](sprint/SPRINT-01.md) · [SPRINT-02](sprint/SPRINT-02.md).
 
 Legend: ✅ done · 🟡 partial · ⛔ blocked · ⬜ not started.
+
+## M↔P mapping (milestone view ↔ system vision)
+
+This file uses single-package **M-numbering** (M0–M4). The system vision
+[docs/VISION.md](../../../docs/en/VISION.md) §8 uses quarterly **P-numbering** (P1–P3)
+spanning all three packages. They are two views of one plan — the table below
+maps between them. **VISION §8 is the strategic source of truth; the sequenced,
+task-level execution lives in [DEV-PLAN.md](DEV-PLAN.md).**
+
+| M (this file) | P (VISION §8) | Note |
+|---|---|---|
+| M0 Skeleton ✅ · M1 MVP ✅ | — (pre-P foundation) | Done before the P-framing; the numpy-only core SDK. |
+| M2 Real Perception + Scale + Verbalizer 🟡 | **P1 · 地基** | P1 = close the M2 demo *without a GPU* + add the evidence layer the M-view didn't name (eval set v0, retrieval-context fix, perf gate, deploy-matrix smoke, dual Reasoner). |
+| M3 Real Robot Demo + ROS 2 ⬜ | **P2 · 集成验证** | External open-friendly bodies + LeRobot + the RoboOS/InternRobotics spike outcome. |
+| M4 Hardening + Mem0 Adapter ⬜ | **P3 · 生态位锁定** | Stable serialization protocol + default adoption + commercial baseline (OQ-1/OQ-2). |
 
 ## M0 · Skeleton ✅
 
@@ -93,4 +110,4 @@ Blocked on a CUDA dev box:
 Each milestone breaks down in `docs/sprint/SPRINT-NN.md`. The sequenced
 execution plan (GPU-aware, GT-adapter-first) lives in [DEV-PLAN.md](DEV-PLAN.md).
 Resolved design questions land in [05-OPEN.md](05-OPEN.md); shipped surface is
-tracked in [CHANGELOG.md](../CHANGELOG.md) and [spec/API.md](../spec/API.md).
+tracked in [CHANGELOG.md](../../CHANGELOG.md) and [spec/API.md](../../spec/API.md).

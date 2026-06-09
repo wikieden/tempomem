@@ -1,3 +1,5 @@
+> 🌐 **English** · [中文](../zh/01-POSITIONING.md)
+
 # 01 · Positioning & Competitive Landscape
 
 ## The Empty Cell

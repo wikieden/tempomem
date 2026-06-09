@@ -1,3 +1,5 @@
+> 🌐 **English** · [中文](../zh/05-OPEN.md)
+
 # 05 · Open Questions
 
 Live design decisions not yet locked. Each has an owner-decision deadline (the milestone by which it must be resolved or it blocks). Resolved entries move to a dated decision log at the bottom.

@@ -1,3 +1,5 @@
+> 🌐 **English** · [中文](README.zh.md)
+
 # SpatialMem
 
 [![CI](https://github.com/wikieden/spatialmem/actions/workflows/ci.yml/badge.svg)](https://github.com/wikieden/spatialmem/actions/workflows/ci.yml)
@@ -79,11 +81,11 @@ tests/
 
 Pre-alpha. Public design phase. Read in order:
 
-- [docs/00-VISION.md](docs/00-VISION.md) — what & why
-- [docs/01-POSITIONING.md](docs/01-POSITIONING.md) — competitors & wedge
-- [docs/02-ARCHITECTURE.md](docs/02-ARCHITECTURE.md) — layers & dataflow
-- [docs/03-ROADMAP.md](docs/03-ROADMAP.md) — milestones
-- [docs/04-MVP-SCOPE.md](docs/04-MVP-SCOPE.md) — first deliverable
+- [docs/00-VISION.md](docs/en/00-VISION.md) — what & why
+- [docs/01-POSITIONING.md](docs/en/01-POSITIONING.md) — competitors & wedge
+- [docs/02-ARCHITECTURE.md](docs/en/02-ARCHITECTURE.md) — layers & dataflow
+- [docs/03-ROADMAP.md](docs/en/03-ROADMAP.md) — milestones
+- [docs/04-MVP-SCOPE.md](docs/en/04-MVP-SCOPE.md) — first deliverable
 - [spec/API.md](spec/API.md) — Python SDK contract
 - [spec/SCHEMA.md](spec/SCHEMA.md) — scene-graph schema
 - [spec/FUSION-ARBITER.md](spec/FUSION-ARBITER.md) — node merging algorithm

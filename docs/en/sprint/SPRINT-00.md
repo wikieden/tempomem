@@ -1,3 +1,5 @@
+> 🌐 **English** · [中文](../../zh/sprint/SPRINT-00.md)
+
 # Sprint 00 · Skeleton (M0)
 
 **Goal:** A clean-install `import spatialmem` works on Mac (no CUDA), schema + dataclasses round-trip, and a 50-line fake-detections demo runs green. No real perception. No fusion intelligence yet — just the rails.
@@ -11,7 +13,7 @@
 | T1 | `pyproject.toml` — hatch, deps (numpy/scipy/sqlite-vec/pillow/pydantic), extras stubs, ruff+pyright config | installable skeleton | — | 20 min |
 | T2 | Package skeleton `src/spatialmem/__init__.py` with `__all__` + version | `import spatialmem` works | T1 | 10 min |
 | T3 | `frame.py` — `Detection`, `Observation` frozen dataclasses + JSON round-trip | typed value objects | T2 | 30 min |
-| T4 | `persist/schema.sql` + `persist/migrations/001_init.py` — all tables from [SCHEMA.md](../../spec/SCHEMA.md) | empty store creatable | T2 | 40 min |
+| T4 | `persist/schema.sql` + `persist/migrations/001_init.py` — all tables from [SCHEMA.md](../../../spec/SCHEMA.md) | empty store creatable | T2 | 40 min |
 | T5 | `persist/__init__.py` — open/create, sqlite-vec + rtree load, migration runner, WAL | `SpatialMemory.open()` returns a live store | T4 | 40 min |
 | T6 | `store.py` — Node/Edge/Episode CRUD + `stats()` | read/write graph rows | T5, T3 | 50 min |
 | T7 | Fusion **stub** — every observation = new node (no merge logic yet) | observations land as nodes | T6 | 20 min |

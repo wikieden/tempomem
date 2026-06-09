@@ -1,3 +1,5 @@
+> 🌐 **English** · [中文](../../zh/sprint/SPRINT-02.md)
+
 # Sprint 02 · Real Perception + Scale + Verbalizer (M2)
 
 **Goal:** Close the loop from raw RGB-D to answered question. Today SpatialMem is detections-in (BYO perception). M2 ships a real `add_frame(rgb, depth, pose)` perception adapter so a user streams a dataset scene and asks questions with no hand-fed detections. Plus the pieces that make it production-shaped: ANN retrieval at scale, decay/forget, and an LLM verbalizer.

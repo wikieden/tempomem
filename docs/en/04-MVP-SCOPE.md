@@ -1,3 +1,5 @@
+> 🌐 **English** · [中文](../zh/04-MVP-SCOPE.md)
+
 # 04 · MVP Scope (M1)
 
 ## Goal

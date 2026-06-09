@@ -1,3 +1,5 @@
+> 🌐 **English** · [中文](../zh/02-ARCHITECTURE.md)
+
 # 02 · Architecture
 
 ## Layered Stack
