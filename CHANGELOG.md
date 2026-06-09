@@ -7,6 +7,10 @@ All notable changes to SpatialMem are documented here. Format follows
 ## [Unreleased] — M2 in progress
 
 ### Added
+- **`bench.persistence_after_reopen` + `bench.decay_forget` + `bench.HygieneReport`**
+  — eval-suite v0 helpers: restart / cross-episode persistence recall and the
+  decay/forget lifecycle counts, alongside the existing `recall_at_k`.
+  Deterministic and network-free.
 - **`serialize(format="prompt", node_ids=...)`** — restrict the prompt to a set
   of nodes plus their hierarchy ancestors, so callers serialize a query-relevant
   subgraph instead of the whole scene. Powers `Brain.ask`'s retrieval context
