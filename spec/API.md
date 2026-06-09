@@ -38,7 +38,8 @@ class SpatialMemory:
 ```python
 def add_detections(self, dets: Sequence[Detection],
                    *, episode: str | None = None) -> List[int]:
-    """Insert observations. Returns assigned observation ids. Non-blocking."""
+    """Insert observations. Returns assigned observation ids. Non-blocking
+    unless config.max_pending_obs is set and reached (then it auto-commits)."""
 
 def add_frame(self, rgb: np.ndarray, depth: np.ndarray, pose: np.ndarray,
               *, intrinsics: np.ndarray | None = None,
@@ -46,7 +47,8 @@ def add_frame(self, rgb: np.ndarray, depth: np.ndarray, pose: np.ndarray,
               episode: str | None = None) -> list[int]:
     """Route a posed RGB-D frame through a PerceptionAdapter to detections,
     then add_detections. Adapter from `adapter=` or open(adapter=).
-    Returns assigned observation ids. Non-blocking (still needs commit())."""
+    Returns assigned observation ids. Non-blocking (still needs commit(),
+    unless config.max_pending_obs auto-flushes)."""
 
 def commit(self, *, timeout_s: float = 30.0) -> CommitStats:
     """Flush queued observations through the arbiter and fsync."""

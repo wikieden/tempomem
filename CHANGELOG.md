@@ -7,6 +7,11 @@ All notable changes to SpatialMem are documented here. Format follows
 ## [Unreleased] — M2 in progress
 
 ### Added
+- **`SpatialMemConfig.max_pending_obs`** — optional auto-flush bound: when set,
+  `add_detections()` calls `commit()` automatically once `_pending` reaches the
+  threshold and logs a `WARNING`. `None` (default) keeps the caller responsible
+  for `commit()`; guards `_pending` from unbounded growth in long-running ingest
+  loops and routes through `commit()` so fuse-before-persist still holds.
 - **`decay(half_life_days, min_conf)`** — age-decays node confidence
   (`conf' = conf · 0.5^(age/half_life)` from `t_last`) and prunes nodes below
   the floor. Memory hygiene for long-lived stores.

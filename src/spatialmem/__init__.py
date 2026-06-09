@@ -7,6 +7,7 @@ split, the `PerceptionAdapter` seam (`add_frame`), and dataset streaming.
 
 from __future__ import annotations
 
+import logging
 import os
 import sqlite3
 import time
@@ -44,6 +45,8 @@ from .verbalize import Verbalizer
 from .verbalize import build_answer_prompt as _build_answer_prompt
 
 __version__ = "0.1.0a1"
+
+_log = logging.getLogger("spatialmem.memory")
 
 __all__ = [
     "AdapterError",
@@ -201,6 +204,18 @@ class SpatialMemory:
             )
             obs_ids.append(oid)
             self._pending.append(oid)
+        # spec: ENGINEERING.md §auto-flush — if max_pending_obs is set and the
+        # threshold is reached, fuse immediately so _pending never grows without
+        # bound in a long-running process that forgets to call commit().
+        limit = self._cfg.max_pending_obs
+        if limit is not None and len(self._pending) >= limit:
+            _log.warning(
+                "spatialmem: auto-flushing %d pending observations "
+                "(max_pending_obs=%d); call commit() explicitly to avoid this",
+                len(self._pending),
+                limit,
+            )
+            self.commit()
         return obs_ids
 
     def add_frame(

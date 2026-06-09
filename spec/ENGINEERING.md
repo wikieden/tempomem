@@ -78,6 +78,19 @@ spatialmem/                ← repo root
 - Returns over raises for expected absence (`Optional`, `[]`). Raise only for programmer error or IO failure.
 - No comments narrating *what* the code does. Comments only for *why*, with a referenced spec section.
 
+## Auto-flush (`max_pending_obs`)
+
+`add_detections()` only *stages* observations into `_pending`; `commit()` is the
+sole drainer that fuses them (fuse-before-persist). A long-running ingest loop
+that forgets to `commit()` would let `_pending` grow without bound.
+`SpatialMemConfig.max_pending_obs` is an optional guard: set to `N >= 1`,
+`add_detections()` calls `commit()` automatically once `len(_pending) >= N`,
+emitting a `WARNING` on the `spatialmem.memory` logger. The auto-flush routes
+through the *same* `commit()`, so fuse-before-persist still holds (no
+orphan/unfused rows) and every observation keeps its per-call `episode` binding.
+`None` (default) disables the guard — the caller owns `commit()`. A threshold
+`< 1` is rejected at config construction.
+
 ## Testing
 
 | Layer | Required |

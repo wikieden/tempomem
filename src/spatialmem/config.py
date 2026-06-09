@@ -40,3 +40,13 @@ class FusionConfig:
 @dataclass(frozen=True, slots=True)
 class SpatialMemConfig:
     fusion: FusionConfig = field(default_factory=FusionConfig)
+    # Auto-flush threshold: if set, add_detections() calls commit() automatically
+    # once _pending reaches this length, and emits a WARNING log line.
+    # None (default) disables the limit — caller is responsible for commit().
+    max_pending_obs: int | None = None
+
+    def __post_init__(self) -> None:
+        # spec: ENGINEERING.md §auto-flush — a threshold below 1 would flush after
+        # every observation, which is a config mistake rather than a valid mode.
+        if self.max_pending_obs is not None and self.max_pending_obs < 1:
+            raise ValueError(f"max_pending_obs must be >= 1 or None, got {self.max_pending_obs}")
