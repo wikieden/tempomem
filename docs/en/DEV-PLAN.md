@@ -21,10 +21,10 @@ packages: `spatialmem` / `spatialmem-perception` / `spatialmem-brain`).
 > under VISION §8 P1. The redundant `docs/00-SYSTEM-VISION.md` (an earlier
 > subset of `docs/VISION.md`) was deleted in the same pass.
 
-## Where we are (2026-06-08)
+## Where we are (2026-06-09)
 
-- `v0.1.0a1` tagged, repo public. **155 tests** (core 120 / brain 19 /
-  perception 16), core install numpy-only, `pyright` clean on core (0 errors).
+- `v0.1.0a1` tagged, repo public. **176 tests pass (2 skipped)** across the
+  workspace, core install numpy-only, `pyright` clean on core (0 errors).
 - **Architecture already split** (this is done, not future): perception lives in
   the companion `spatialmem-perception` (`BoxDetectorAdapter` + `Detector3D`
   seam + cam→world geometry + `ImageEncoder`); the brain lives in
@@ -32,6 +32,32 @@ packages: `spatialmem` / `spatialmem-perception` / `spatialmem-brain`).
   keeps only the `PerceptionAdapter` / `Verbalizer` protocols.
 - **M0 ✅ · M1 ✅ · M2 🟡** — memory-deepening + retrieval tracks complete; the
   M2 recorded demo and learned (GPU) perception are the remaining gaps.
+
+## P1 progress (2026-06-09)
+
+The hybrid critical path below is **done through #3, with #4 partially done**.
+176 tests pass (2 skipped); ruff + pyright clean. An adversarial-review pass
+(5 agents) over #1–#4 caught one HIGH (a relational-query regression — fixed),
+one MEDIUM (top-k cap → default `k=64`), and several LOW, all addressed.
+
+- **#1 Retrieval-context fix ✅** — `Brain.ask()` now `query()`s a relevant
+  subgraph (hits + 1-hop relation neighbours + hierarchy ancestors) and
+  serializes only that via the new `serialize(node_ids=...)`; whole-scene
+  fallback when nothing matches.
+- **#2 B1' `ReplicaAdapter` ✅** — pure-numpy `gt_detections_from_frame`
+  (deproject GT masks + depth + pose → world detections), `ReplicaAdapter`
+  (`DatasetSource`), and `ReplicaFileReader` (real scenes, `[replica]` extra,
+  honestly flagged unvalidated against real data). Geometry unit-tested; review
+  verdict **correct** (math verified to machine epsilon).
+- **#3 Eval set v0 ✅** — `bench.persistence_after_reopen` (restart /
+  cross-episode recall), `bench.decay_forget` (lifecycle counts), and
+  `citation_compliance` (format + validity rate). Deterministic, network-free.
+- **#4 B5 demo 🟡 / A1 publish ⬜** — `examples/04_replica_demo.py` runs the
+  ReplicaAdapter pipeline end to end and renders viz HTML (synthetic
+  Replica-shaped frames: 12 frames → 3 fused nodes, recall@5 = 1.00). **The
+  real-Replica recording awaits a dataset variant with per-frame instance GT**
+  (the Nice-SLAM RGB-D zip lacks masks; use a ConceptGraphs-rendered Replica or
+  a Habitat render). A1 PyPI publish is still pending (your call).
 
 ## Scope discipline — we are a MEMORY system, not perception
 
@@ -68,10 +94,10 @@ GPU perception sits off to the side until hardware lands.
 
 | # | Task | Package | GPU | VISION §8 P1 row | Why this order |
 |---|---|---|---|---|---|
-| **1** | **Retrieval-context fix** — `Brain.ask()` must `query()` a relevant subgraph *then* `serialize`, not dump the whole graph token-truncated | brain | no | "检索式上下文（先 query 过滤子图再 serialize）" / OQ-6 | Fixes a **verified code defect** (see below) that otherwise makes any large-scene eval number a lie. Gates eval validity → must come first. |
-| **2** | **B1' `ReplicaAdapter`** — parse a Replica scene's GT instance masks + depth + trajectory into the existing `DatasetSource` shape | core (+ fixture) | no | (feeds eval + closes M2 demo) | One real-data stream serves both the eval set and the recorded demo. Unblocks both downstream items at once. |
-| **3** | **Eval set v0 (automated, deterministic)** — extend beyond the existing `bench.recall_at_k`: add **`cited_node_ids` format-compliance rate**, cross-episode persistence, decay/forget correctness. **No human semantic labelling** (that's P2). | core | no | "自建空间记忆评测集 v0（自动化、确定性）" | The wedge's number support. VISION makes this P1's headline; it depends on #1 (valid retrieval) and is strongest with #2 (real data). |
-| **4** | **B5 record demo + A1 publish** — viz HTML + asciinema of the stream loop; PyPI publish | core | no | (visibility) | Visibility *after* there's a defensible number behind it. A1 is **your action** (needs PyPI token, irreversible). |
+| **1 ✅** | **Retrieval-context fix** — `Brain.ask()` must `query()` a relevant subgraph *then* `serialize`, not dump the whole graph token-truncated | brain | no | "检索式上下文（先 query 过滤子图再 serialize）" / OQ-6 | Fixes a **verified code defect** (see below) that otherwise makes any large-scene eval number a lie. Gates eval validity → must come first. |
+| **2 ✅** | **B1' `ReplicaAdapter`** — parse a Replica scene's GT instance masks + depth + trajectory into the existing `DatasetSource` shape | core (+ fixture) | no | (feeds eval + closes M2 demo) | One real-data stream serves both the eval set and the recorded demo. Unblocks both downstream items at once. |
+| **3 ✅** | **Eval set v0 (automated, deterministic)** — extend beyond the existing `bench.recall_at_k`: add **`cited_node_ids` format-compliance rate**, cross-episode persistence, decay/forget correctness. **No human semantic labelling** (that's P2). | core | no | "自建空间记忆评测集 v0（自动化、确定性）" | The wedge's number support. VISION makes this P1's headline; it depends on #1 (valid retrieval) and is strongest with #2 (real data). |
+| **4 🟡** | **B5 record demo + A1 publish** — viz HTML + asciinema of the stream loop; PyPI publish | core | no | (visibility) | Visibility *after* there's a defensible number behind it. A1 is **your action** (needs PyPI token, irreversible). |
 
 **Off the critical path (GPU-gated, do when CUDA lands):**
 
@@ -96,9 +122,11 @@ GPU perception sits off to the side until hardware lands.
   alternative). Until it lands, treat RoboOS references as "unverified signal"
   (OQ-5).
 
-### The verified defect behind step #1
+### The verified defect behind step #1 — fixed 2026-06-09
 
-`spatialmem-brain/src/spatialmem_brain/brain.py:61` — the docstring says
+> **Fixed** in #1 above; kept here as the record of what was wrong.
+
+`spatialmem-brain/src/spatialmem_brain/brain.py:61` (pre-fix) — the docstring says
 "Retrieve memory → reason → answer", but the body does **not** retrieve:
 
 ```python
