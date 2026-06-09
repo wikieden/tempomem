@@ -71,6 +71,7 @@ def to_prompt(
     k_hops: int = 2,
     relations: bool = True,
     max_tokens: int | None = None,
+    node_ids: set[int] | None = None,
 ) -> str:
     """Token-efficient indented text, grouped by hierarchy: region/room nodes
     list their child objects indented beneath them; ungrouped objects sit at the
@@ -80,9 +81,23 @@ def to_prompt(
 
     `max_tokens` caps the output: nodes are emitted most-recent-first and the
     rest dropped with an explicit `… (N more omitted)` marker (never silent).
+    `node_ids` restricts the scene to those nodes plus their hierarchy ancestors
+    — a query-relevant subgraph rather than the whole store.
     """
     nodes = store.all_nodes(conn)
     by_id = {n.id: n for n in nodes}
+    if node_ids is not None:
+        # Focused retrieval context: keep only the queried nodes plus their
+        # hierarchy ancestors, so Brain.ask serializes a query-relevant subgraph
+        # instead of the whole scene token-truncated (VISION §2.3, OQ-6).
+        keep: set[int] = set()
+        for nid in node_ids:
+            cur = by_id.get(nid)
+            while cur is not None and cur.id not in keep:
+                keep.add(cur.id)
+                cur = by_id.get(cur.parent_id) if cur.parent_id is not None else None
+        nodes = [n for n in nodes if n.id in keep]
+        by_id = {n.id: n for n in nodes}
     children: dict[int | None, list[store.NodeRow]] = {}
     for n in nodes:
         children.setdefault(n.parent_id, []).append(n)

@@ -35,3 +35,12 @@ def test_no_budget_returns_everything(mem) -> None:
     assert "more omitted" not in txt
     for i in range(5):
         assert f'"obj{i}"' in txt
+
+
+def test_node_ids_restricts_to_subgraph(mem) -> None:
+    _many(mem, 6)
+    target = mem.query("obj3").nodes[0]
+    txt = mem.serialize(format="prompt", node_ids={target.id})
+    assert '"obj3"' in txt  # the queried node is present
+    assert '"obj0"' not in txt  # unrelated nodes are excluded
+    assert '"obj5"' not in txt

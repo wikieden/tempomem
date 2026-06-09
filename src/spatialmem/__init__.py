@@ -350,6 +350,7 @@ class SpatialMemory:
         k_hops: int = 2,
         relations: bool = True,
         max_tokens: int | None = None,
+        node_ids: set[int] | None = None,
     ) -> str:
         if format == "json":
             return serialize.dump_json(self._conn, self._dim)
@@ -360,6 +361,7 @@ class SpatialMemory:
                 k_hops=k_hops,
                 relations=relations,
                 max_tokens=max_tokens,
+                node_ids=node_ids,
             )
         raise QueryError(f"unknown serialize format: {format}")
 
