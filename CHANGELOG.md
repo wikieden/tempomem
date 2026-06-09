@@ -7,6 +7,11 @@ All notable changes to SpatialMem are documented here. Format follows
 ## [Unreleased] — M2 in progress
 
 ### Added
+- **`datasets.ReplicaAdapter` + `datasets.gt_detections_from_frame`** — parse a
+  Replica scene's GT instance masks + depth + trajectory into the
+  `DatasetSource` detection stream (deproject -> world-frame centroid/bbox, pure
+  numpy). The default `ReplicaFileReader` (PNG/traj I/O) needs the `[replica]`
+  extra and is unvalidated against real data in CI; the geometry is unit-tested.
 - **`bench.persistence_after_reopen` + `bench.decay_forget` + `bench.HygieneReport`**
   — eval-suite v0 helpers: restart / cross-episode persistence recall and the
   decay/forget lifecycle counts, alongside the existing `recall_at_k`.

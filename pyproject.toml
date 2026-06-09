@@ -28,8 +28,9 @@ dependencies = [
 # Native vector index — wired in M1. M0 stores vectors as BLOB.
 vec = ["sqlite-vec>=0.1.0"]
 clip = ["open-clip-torch>=2.20"]
+replica = ["imageio>=2.30"]
 dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.6", "pyright>=1.1.380"]
-all = ["spatialmem[vec,clip,dev]"]
+all = ["spatialmem[vec,clip,replica,dev]"]
 
 [project.scripts]
 spatialmem = "spatialmem.cli:main"

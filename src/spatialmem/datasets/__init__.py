@@ -10,7 +10,7 @@ depth) plugs into the same `DatasetSource` shape later. See docs/DEV-PLAN.md.
 from __future__ import annotations
 
 import hashlib
-from collections.abc import Iterator, Sequence
+from collections.abc import Iterable, Iterator, Sequence
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
@@ -115,3 +115,148 @@ def stream(
             mem.commit()
     mem.commit()
     return n_frames, n_obs
+
+
+def gt_detections_from_frame(
+    depth: np.ndarray,
+    instance: np.ndarray,
+    pose: np.ndarray,
+    *,
+    intrinsics: tuple[float, float, float, float],
+    labels: dict[int, str],
+    encoder: HashEncoder,
+    ts: float = 0.0,
+    min_pixels: int = 1,
+    drop_ids: tuple[int, ...] = (0,),
+) -> list[Detection]:
+    """Ground-truth instance masks + depth -> world-frame ``Detection``s.
+
+    Pure numpy, no model, no GPU. For each instance id in ``instance`` (a per-
+    pixel ``(H, W)`` integer id map), the masked depth pixels are deprojected to
+    camera-frame 3D points via pinhole ``intrinsics`` ``(fx, fy, cx, cy)`` —
+    OpenCV convention: +x right, +y down, +z forward — transformed to the world
+    frame by the 4x4 camera->world ``pose``, then reduced to a centroid + axis-
+    aligned bbox (meters). ``labels`` maps instance id -> label; ids in
+    ``drop_ids`` (default background ``0``) and instances with fewer than
+    ``min_pixels`` valid depth pixels are skipped.
+    """
+    fx, fy, cx, cy = intrinsics
+    depth = np.asarray(depth, dtype=np.float64)
+    instance = np.asarray(instance)
+    p = np.asarray(pose, dtype=np.float64)
+    rot, trans = p[:3, :3], p[:3, 3]
+    dets: list[Detection] = []
+    for iid in (int(i) for i in np.unique(instance)):
+        if iid in drop_ids:
+            continue
+        sel = (instance == iid) & (depth > 0)
+        vs, us = np.where(sel)
+        if vs.size < min_pixels:
+            continue
+        d = depth[vs, us]
+        cam = np.stack([(us - cx) * d / fx, (vs - cy) * d / fy, d], axis=1)
+        world = cam @ rot.T + trans
+        cmin, cmax, ctr = world.min(0), world.max(0), world.mean(0)
+        label = labels.get(iid, str(iid))
+        dets.append(
+            Detection(
+                label=label,
+                feature=encoder.encode_text([label])[0],
+                center_xyz=(float(ctr[0]), float(ctr[1]), float(ctr[2])),
+                bbox_min=(float(cmin[0]), float(cmin[1]), float(cmin[2])),
+                bbox_max=(float(cmax[0]), float(cmax[1]), float(cmax[2])),
+                confidence=1.0,
+                ts=ts,
+                aux={"source": "replica-gt", "instance_id": iid},
+            )
+        )
+    return dets
+
+
+@dataclass
+class ReplicaAdapter:
+    """Stream ground-truth Replica detections as a ``DatasetSource``.
+
+    ``reader`` yields ``(depth, instance, pose)`` per frame — inject a list of
+    arrays for tests, or use :class:`ReplicaFileReader` to read a real scene
+    directory. Each frame becomes world-frame detections via
+    :func:`gt_detections_from_frame`. The whole path is pure numpy (no model, no
+    GPU): GT annotations in, fused nodes out.
+    """
+
+    reader: Iterable[tuple[np.ndarray, np.ndarray, np.ndarray]]
+    intrinsics: tuple[float, float, float, float]
+    labels: dict[int, str]
+    encoder: HashEncoder
+    min_pixels: int = 50
+    drop_ids: tuple[int, ...] = (0,)
+
+    def frames(self) -> Iterator[list[Detection]]:
+        for i, (depth, instance, pose) in enumerate(self.reader):
+            yield gt_detections_from_frame(
+                depth,
+                instance,
+                pose,
+                intrinsics=self.intrinsics,
+                labels=self.labels,
+                encoder=self.encoder,
+                ts=float(i),
+                min_pixels=self.min_pixels,
+                drop_ids=self.drop_ids,
+            )
+
+
+@dataclass
+class ReplicaFileReader:
+    """Read a Nice-SLAM / ConceptGraphs-style Replica scene directory.
+
+    Assumed layout (**verify against your Replica variant** — exact filenames
+    and the depth scale differ between releases):
+
+        ``scene_dir/results/depth{i:06d}.png``     16-bit depth / ``depth_scale`` -> meters
+        ``scene_dir/results/instance{i:06d}.png``  per-pixel instance ids
+        ``scene_dir/traj.txt``                      one row-major 4x4 camera->world pose per line
+
+    Needs the ``[replica]`` extra (imageio). This file-I/O path is **not**
+    exercised in CI (no dataset shipped in the repo); the geometry it feeds
+    (:func:`gt_detections_from_frame`) is unit-tested. Iterating yields
+    ``(depth_m, instance, pose)`` tuples ready for :class:`ReplicaAdapter`.
+    """
+
+    scene_dir: str
+    depth_scale: float = 6553.5
+    stride: int = 1
+    depth_pattern: str = "results/depth{i:06d}.png"
+    instance_pattern: str = "results/instance{i:06d}.png"
+    traj_name: str = "traj.txt"
+
+    def __iter__(self) -> Iterator[tuple[np.ndarray, np.ndarray, np.ndarray]]:
+        import os
+
+        iio = _import_imageio()
+        poses = self._load_traj()
+        for i in range(0, len(poses), self.stride):
+            depth = (
+                np.asarray(iio.imread(os.path.join(self.scene_dir, self.depth_pattern.format(i=i))))
+                / self.depth_scale
+            )
+            instance = np.asarray(
+                iio.imread(os.path.join(self.scene_dir, self.instance_pattern.format(i=i)))
+            )
+            yield depth, instance, poses[i]
+
+    def _load_traj(self) -> np.ndarray:
+        import os
+
+        rows = np.loadtxt(os.path.join(self.scene_dir, self.traj_name))
+        return rows.reshape(-1, 4, 4)
+
+
+def _import_imageio():  # pragma: no cover - thin optional-dep shim
+    try:
+        import imageio.v3 as iio  # pyright: ignore[reportMissingImports]
+    except ImportError as e:
+        raise ImportError(
+            "ReplicaFileReader needs the [replica] extra: pip install 'spatialmem[replica]'"
+        ) from e
+    return iio
