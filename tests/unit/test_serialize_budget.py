@@ -44,3 +44,17 @@ def test_node_ids_restricts_to_subgraph(mem) -> None:
     assert '"obj3"' in txt  # the queried node is present
     assert '"obj0"' not in txt  # unrelated nodes are excluded
     assert '"obj5"' not in txt
+
+
+def test_node_ids_keeps_relation_neighbors(mem) -> None:
+    # mug sits on a table; restricting to only the mug must still serve the table
+    # anchor + the "on" edge (relational-query regression guard).
+    mem.add_detections(
+        [make_det("table", (1.0, 0.0, 0.40), 1), make_det("mug", (1.0, 0.0, 0.50), 2)]
+    )
+    mem.commit()
+    mem.relate()
+    mug_id = mem.query("mug").nodes[0].id
+    txt = mem.serialize(format="prompt", node_ids={mug_id})
+    assert '"mug"' in txt and '"table"' in txt  # neighbour kept, not just ancestors
+    assert "on table#" in txt  # the answer-bearing relation survives

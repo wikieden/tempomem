@@ -81,17 +81,25 @@ def to_prompt(
 
     `max_tokens` caps the output: nodes are emitted most-recent-first and the
     rest dropped with an explicit `… (N more omitted)` marker (never silent).
-    `node_ids` restricts the scene to those nodes plus their hierarchy ancestors
-    — a query-relevant subgraph rather than the whole store.
+    `node_ids` restricts the scene to those nodes, their 1-hop relation
+    neighbours, and the hierarchy ancestors of all — a query-relevant subgraph
+    (keeping relational anchors like the "table" in "on the table") rather than
+    the whole store.
     """
     nodes = store.all_nodes(conn)
     by_id = {n.id: n for n in nodes}
     if node_ids is not None:
-        # Focused retrieval context: keep only the queried nodes plus their
-        # hierarchy ancestors, so Brain.ask serializes a query-relevant subgraph
-        # instead of the whole scene token-truncated (VISION §2.3, OQ-6).
-        keep: set[int] = set()
+        # Focused retrieval context: keep the queried nodes, their 1-hop relation
+        # neighbours (so a relational hit like "what's on the table" keeps the
+        # table anchor + the `on` edge), and the hierarchy ancestors of all — a
+        # query-relevant subgraph, not the whole scene (VISION §2.3, OQ-6).
+        seeds = set(node_ids)
         for nid in node_ids:
+            for d, _t, _w in store.edges_from(conn, nid):
+                if d in by_id:
+                    seeds.add(d)
+        keep: set[int] = set()
+        for nid in seeds:
             cur = by_id.get(nid)
             while cur is not None and cur.id not in keep:
                 keep.add(cur.id)
@@ -102,9 +110,13 @@ def to_prompt(
     for n in nodes:
         children.setdefault(n.parent_id, []).append(n)
     t_now = max((n.t_last for n in nodes), default=0.0)
-    header = f"SCENE (root={root}, ts={t_now:.1f})"
+    effective_root = root if (root is not None and root in by_id) else None
+    header = f"SCENE (root={effective_root}, ts={t_now:.1f})"
 
-    def emit(n: store.NodeRow, depth: int, out: list[str]) -> None:
+    def emit(n: store.NodeRow, depth: int, out: list[str], seen: set[int]) -> None:
+        if n.id in seen:  # defensive: a malformed parent_id cycle degrades gracefully
+            return
+        seen.add(n.id)
         line = _fmt_node(n, depth)
         if relations:
             rels = ", ".join(
@@ -116,19 +128,20 @@ def to_prompt(
                 line += f"  | {rels}"
         out.append(line)
         for kid in sorted(children.get(n.id, []), key=lambda x: (-x.t_last, x.id)):
-            emit(kid, depth + 1, out)
+            emit(kid, depth + 1, out, seen)
 
     # One segment per top-level subtree (a region with its children, or a lone
     # object), most-recent-first. Budgeting keeps/drops whole subtrees so a
     # region never appears without its contents.
-    if root is not None and root in by_id:
-        tops = [by_id[root]]
+    if effective_root is not None:
+        tops = [by_id[effective_root]]
     else:
         tops = sorted(children.get(None, []), key=lambda x: (-x.t_last, x.id))
     segments: list[list[str]] = []
+    seen: set[int] = set()
     for n in tops:
         seg: list[str] = []
-        emit(n, 1, seg)
+        emit(n, 1, seg, seen)
         segments.append(seg)
 
     if max_tokens is None:

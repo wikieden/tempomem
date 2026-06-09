@@ -41,3 +41,13 @@ def test_decay_forget_lifecycle(tmp_path) -> None:
         assert rep.nodes_before == 2
         assert rep.pruned == 2  # both aged-out nodes pruned
         assert rep.nodes_after_decay == 0
+
+
+def test_decay_forget_counts_real_removals(tmp_path) -> None:
+    with SpatialMemory.open(tmp_path / "f.smem", embedding_dim=DIM) as mem:
+        _two_episode_kitchen(mem)
+        mug_id = mem.query("mug").nodes[0].id
+        rep = decay_forget(mem, half_life_days=1e9, min_conf=0.0, forget_ids=[mug_id, 999999])
+    assert rep.pruned == 0  # huge half-life, min_conf 0: nothing decays out
+    assert rep.forgotten == 1  # only the real node removed; 999999 not counted
+    assert rep.nodes_after == 1

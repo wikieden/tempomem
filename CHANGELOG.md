@@ -17,9 +17,10 @@ All notable changes to SpatialMem are documented here. Format follows
   decay/forget lifecycle counts, alongside the existing `recall_at_k`.
   Deterministic and network-free.
 - **`serialize(format="prompt", node_ids=...)`** — restrict the prompt to a set
-  of nodes plus their hierarchy ancestors, so callers serialize a query-relevant
-  subgraph instead of the whole scene. Powers `Brain.ask`'s retrieval context
-  (was: whole-graph truncation, VISION §2.3 / OQ-6).
+  of nodes, their 1-hop relation neighbours, and the hierarchy ancestors of all,
+  so callers serialize a query-relevant subgraph (keeping relational anchors like
+  the table in "what's on the table") instead of the whole scene. Powers
+  `Brain.ask`'s retrieval context (was: whole-graph truncation, VISION §2.3 / OQ-6).
 - **`SpatialMemConfig.max_pending_obs`** — optional auto-flush bound: when set,
   `add_detections()` calls `commit()` automatically once `_pending` reaches the
   threshold and logs a `WARNING`. `None` (default) keeps the caller responsible

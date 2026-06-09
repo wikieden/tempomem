@@ -142,7 +142,7 @@ def gt_detections_from_frame(
     """
     fx, fy, cx, cy = intrinsics
     depth = np.asarray(depth, dtype=np.float64)
-    instance = np.asarray(instance)
+    instance = np.asarray(instance).astype(np.int64)
     p = np.asarray(pose, dtype=np.float64)
     rot, trans = p[:3, :3], p[:3, 3]
     dets: list[Detection] = []
@@ -150,7 +150,7 @@ def gt_detections_from_frame(
         if iid in drop_ids:
             continue
         sel = (instance == iid) & (depth > 0)
-        vs, us = np.where(sel)
+        vs, us = np.where(sel)  # np.where -> (rows=v, cols=u); us drives x, vs drives y
         if vs.size < min_pixels:
             continue
         d = depth[vs, us]

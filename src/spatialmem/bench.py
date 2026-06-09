@@ -30,7 +30,9 @@ class EvalReport:
 def recall_at_k(mem: SpatialMemory, cases: list[EvalCase], *, k: int = 5) -> EvalReport:
     """Fraction of cases where the expected label appears in the top-k results.
 
-    Label match is case-insensitive substring (handles "coffee mug" vs "mug").
+    Label match is a case-insensitive bidirectional substring (so "coffee mug"
+    and "mug" match). Choose `expected` labels specific enough to avoid an
+    accidental substring hit (e.g. "tab" would match "table").
     """
     hits = 0
     misses: list[str] = []
@@ -47,13 +49,19 @@ def recall_at_k(mem: SpatialMemory, cases: list[EvalCase], *, k: int = 5) -> Eva
 
 @dataclass
 class HygieneReport:
-    """Counts from one decay (+ optional forget) lifecycle pass."""
+    """Counts from one decay (+ optional forget) lifecycle pass.
+
+    ``forgotten`` is the number of nodes actually removed by ``forget()`` — a
+    forget of a non-existent id removes nothing and is not counted.
+    ``nodes_after`` is the final node count, after decay *and* forget.
+    """
 
     nodes_before: int
     decayed: int
     pruned: int
     nodes_after_decay: int
     forgotten: int
+    nodes_after: int
 
 
 def persistence_after_reopen(
@@ -88,15 +96,15 @@ def decay_forget(
     """
     before = mem.stats().n_nodes
     decayed, pruned = mem.decay(half_life_days=half_life_days, min_conf=min_conf, now=now)
-    after = mem.stats().n_nodes
-    forgotten = 0
+    after_decay = mem.stats().n_nodes
     for nid in forget_ids or []:
         mem.forget(nid)
-        forgotten += 1
+    after = mem.stats().n_nodes
     return HygieneReport(
         nodes_before=before,
         decayed=decayed,
         pruned=pruned,
-        nodes_after_decay=after,
-        forgotten=forgotten,
+        nodes_after_decay=after_decay,
+        forgotten=after_decay - after,  # nodes actually removed by forget()
+        nodes_after=after,
     )
