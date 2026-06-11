@@ -117,10 +117,13 @@ GPU perception sits off to the side until hardware lands.
   query) end-to-end; (b) +perception GPU path. Both must pass.
 - **Dual Reasoner backend** — Cosmos-Reason2 (local RTX PRO 6000, OpenAI-compat
   `/v1`) **and** RoboBrain both drive `Brain.ask()` → `Answer(cited_node_ids)`.
-- **[P2 gating spike] RoboOS / InternRobotics scene-graph capability survey** —
-  due end of P1; its conclusion decides P2 direction (complement vs lightweight
-  alternative). Until it lands, treat RoboOS references as "unverified signal"
-  (OQ-5).
+- **[P2 gating spike] RoboOS / InternRobotics scene-graph capability survey ✅
+  (concluded 2026-06-10)** — verdict: **complementary, not covered** (RoboOS's
+  shipped memory is a volatile Redis hash, `FLUSHDB` on master start; the
+  serious design, RoboOS-NeXT STEM, is paper-only with code unreleased). OQ-5
+  closed with monitoring triggers — re-check after BAAI Conf 2026-06-12/13.
+  Evidence + triggers:
+  [roboos-robobrain-deep-dive-2026.md](../../../docs/en/research/roboos-robobrain-deep-dive-2026.md) §3.5.
 
 ### The verified defect behind step #1 — fixed 2026-06-09
 
@@ -142,6 +145,29 @@ silently degrades and is **not** a function of memory quality. Fix: `query()`
 (or `related()`) a relevant subgraph from `question` first, serialize *that*,
 and have the eval (#3) report both strategies — full-graph truncation vs
 query-subgraph — so the improvement is measured, not assumed (VISION §2.3, OQ-6).
+
+## Brain track — how we build the "embodied brain" (decided 2026-06-10)
+
+Strategy: **build the brain *system*, not a brain *model*.** Brain-model
+competition is a red ocean (RoboBrain / Gemini-ER / Cosmos); every production
+stack — including BAAI's own — converges on "external scene-graph store +
+serialize into prompt + stateless VLM", which is exactly our three-package
+shape. Evidence:
+[roboos-robobrain-deep-dive-2026.md](../../../docs/en/research/roboos-robobrain-deep-dive-2026.md).
+
+| # | Task | Package | GPU | Rationale (evidence) |
+|---|---|---|---|---|
+| B-T1 | **Close the loop** — refactor Brain2Robot into `spatialmem-brain`: `Brain.ask()` grows from answer-only to propose-action → execute → write the outcome back into memory | brain | no | a brain without a loop is a QA bot; refactor target decided 2026-06-09 |
+| B-T2 | **Dual-reasoner A/B** — second vLLM endpoint serving RoboBrain 2.5-8B vs Cosmos-Reason2-8B, scored on eval set #3 (makes the "Dual Reasoner backend" bullet above concrete) | brain | serving only | vendor benchmarks only compare Cosmos-Reason**1**; what matters is who reads *our* scene-graph serialization better |
+| B-T3 | **Memory add-ons** — append-only event-log table (scene deltas); embodiment partition (robot state / skills / battery); serialize a context bundle (scene ⊕ recent action feedback ⊕ robot state); align relation vocabulary to `{on,in,left,right,front,back,near}` | core | no | STEM ablations: drop spatial memory → steps 11.6→58.1; drop embodiment memory → 0% SR; 30.2% of failures = memory-noise accumulation (the fusion arbiter's exact target) |
+| B-T4 | **MCP-ify the memory** — expose `spatialmem` query/answer/commit as an MCP server | core | no | RoboOS issues #76/#73 are live unmet demand for an open scene-graph memory component; locks the niche |
+
+Sequencing: after P1 exit (#4); B-T3 is CPU-only and can fold in
+opportunistically alongside the parallelizable P1 items. Out of scope
+(unchanged): model training, VLA, multi-robot scheduling, simulators.
+Deployment unchanged: cloud-first (RTX PRO 6000) → on-device Thor when it fits —
+which is why Cosmos-Reason2 stays the primary reasoner (first-party Thor
+support; RoboBrain has none documented).
 
 ## M3 reach (mostly no GPU) — after P1 exit
 
