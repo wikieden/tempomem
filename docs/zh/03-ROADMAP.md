@@ -26,10 +26,10 @@
 - ✅ 仓库、许可证（Apache-2.0）、CI 矩阵（3.10–3.12 × mac/linux）、包结构
 - ✅ `Detection` / `Observation` / `Node` / `Edge` 值对象 + JSON 往返序列化
 - ✅ SQLite schema + 只向前迁移（sqlite-vec 接线移至 M2——见备注）
-- ✅ `pip install spatialmem` 可在 Mac（无 CUDA）上运行，无需真实感知
+- ✅ `pip install tempomem` 可在 Mac（无 CUDA）上运行，无需真实感知
 - ✅ `examples/01_quickstart.py` —— 假 detection 输入，查询输出
 
-**退出条件已达成：** `pytest -q` 绿色通过；在干净的 Python 3.11 venv 中 `import spatialmem` 可正常执行。
+**退出条件已达成：** `pytest -q` 绿色通过；在干净的 Python 3.11 venv 中 `import tempomem` 可正常执行。
 
 > 偏差说明：M0 以 BLOB 存储向量（numpy-only）；sqlite-vec ANN 在 M2（V1）通过 `[vec]` extra 加载，并提供线性回退。已记录于 [05-OPEN](05-OPEN.md)。
 
@@ -40,7 +40,7 @@
 - ✅ `query(...)` → 空间 + 时序 + 关键字检索，返回节点
 - ✅ **语义查询**（从 M2 提前）：BYO `Encoder` 协议 + `OpenClipEncoder`（`[clip]` extra），对节点特征做余弦计算
 - ✅ `serialize(format="prompt"|"json")` → 紧凑图文本
-- ✅ Web 查看器（只读）—— `spatialmem viz` 导出自包含 HTML 场景（构建于 M2）
+- ✅ Web 查看器（只读）—— `tempomem viz` 导出自包含 HTML 场景（构建于 M2）
 - ⬜ Replica/ScanNet RGB-D 演示——需要 M2 perception 适配器（CUDA）
 
 **退出条件：** README 快速入门可在干净机器上原样运行（`examples/01` + `02`）。Replica 演示并入 M2。
@@ -77,12 +77,12 @@
 
 ## M3 · 真实机器人演示 + ROS 2 适配器 ⬜
 
-- ROS 2 桥接节点（订阅 RGB-D topic，发布 `/spatialmem/scene_graph`）
+- ROS 2 桥接节点（订阅 RGB-D topic，发布 `/tempomem/scene_graph`）
 - 公开演示：移动机器人或 AR 会话，多日持久化
 - 在共享数据集上与 eMEM 对比基准测试（开放词汇查询）——复用 `bench.recall_at_k`
 - 首个外部集成技术文章（目标：Brain2Robot / L3-planner 参考循环）
 - v0.1.0 PyPI 发布 + 发布帖
-- 3D Web 查看器（M2 的 `spatialmem viz` 是 2D 俯视只读起点）
+- 3D Web 查看器（M2 的 `tempomem viz` 是 2D 俯视只读起点）
 
 **退出条件：** GitHub ★ 达 100，Discord 中 3 位外部用户，1 篇被引用的集成文章。
 

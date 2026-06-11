@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "spatialmem"
+name = "tempomem"
 version = "0.1.0a1"
 description = "Spatial memory layer for AI agents — RGB-D / point clouds to a persistent, queryable, LLM-native 3D scene graph."
 readme = "README.md"
@@ -30,17 +30,17 @@ vec = ["sqlite-vec>=0.1.0"]
 clip = ["open-clip-torch>=2.20"]
 replica = ["imageio>=2.30"]
 dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.6", "pyright>=1.1.380"]
-all = ["spatialmem[vec,clip,replica,dev]"]
+all = ["tempomem[vec,clip,replica,dev]"]
 
 [project.scripts]
-spatialmem = "spatialmem.cli:main"
+tempomem = "tempomem.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/wikieden/spatialmem"
-Repository = "https://github.com/wikieden/spatialmem"
+Homepage = "https://github.com/wikieden/tempomem"
+Repository = "https://github.com/wikieden/tempomem"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/spatialmem"]
+packages = ["src/tempomem"]
 
 [tool.ruff]
 line-length = 100
@@ -50,7 +50,7 @@ src = ["src", "tests"]
 select = ["E", "F", "I", "B", "UP", "SIM", "PERF", "RUF"]
 
 [tool.pyright]
-include = ["src/spatialmem"]
+include = ["src/tempomem"]
 pythonVersion = "3.10"
 typeCheckingMode = "standard"
 

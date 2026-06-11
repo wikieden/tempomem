@@ -1,4 +1,4 @@
-"""SpatialMem Phase-B demo — stream a multi-frame scene, then query it.
+"""Chronotope Phase-B demo — stream a multi-frame scene, then query it.
 
 No GPU, no download. A SyntheticScene stands in for a Replica/ScanNet stream:
 each object is observed across many frames, and incremental fusion converges
@@ -13,7 +13,7 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
-from spatialmem import HashEncoder, SpatialMemory, SyntheticScene, stream
+from tempomem import HashEncoder, SpatialMemory, SyntheticScene, stream
 
 DIM = 64
 

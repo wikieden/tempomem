@@ -1,6 +1,6 @@
 """Text/image encoders for semantic queries.
 
-SpatialMem is BYO-encoder: features on `Detection` come from the user's
+Chronotope is BYO-encoder: features on `Detection` come from the user's
 perception model; to run a natural-language `query("red mug")` the same
 embedding space must be reachable for the query string. Supply any object
 implementing the `Encoder` protocol to `SpatialMemory.open(encoder=...)`.
@@ -41,7 +41,7 @@ def l2_normalize(x: np.ndarray) -> np.ndarray:
 
 
 class OpenClipEncoder:
-    """Reference CLIP encoder. Requires `pip install spatialmem[clip]`.
+    """Reference CLIP encoder. Requires `pip install tempomem[clip]`.
 
     Lazy-imports open_clip/torch so importing this module never pulls Torch.
     """
@@ -58,7 +58,7 @@ class OpenClipEncoder:
             import torch  # pyright: ignore[reportMissingImports]
         except ImportError as e:  # pragma: no cover - exercised only without extra
             raise ImportError(
-                "OpenClipEncoder needs the 'clip' extra: pip install spatialmem[clip]"
+                "OpenClipEncoder needs the 'clip' extra: pip install tempomem[clip]"
             ) from e
         self._torch = torch
         self._model, _, _ = open_clip.create_model_and_transforms(

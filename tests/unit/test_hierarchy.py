@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from spatialmem import HashEncoder, SpatialMemory
+from tempomem import HashEncoder, SpatialMemory
 from tests.conftest import DIM, make_det
 
 

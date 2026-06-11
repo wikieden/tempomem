@@ -14,7 +14,7 @@ Two modes:
 
 Then render the scene graph to HTML:
 
-    uv run spatialmem viz replica_scene.smem -o replica_scene.html
+    uv run tempomem viz replica_scene.smem -o replica_scene.html
 
 NOTE on real data: a real run needs a Replica variant that ships **per-frame
 instance GT masks** (e.g. the ConceptGraphs-rendered Replica, or a Habitat-sim
@@ -31,9 +31,9 @@ from collections.abc import Iterator
 
 import numpy as np
 
-from spatialmem import SpatialMemory
-from spatialmem.bench import recall_at_k
-from spatialmem.datasets import HashEncoder, ReplicaAdapter, stream
+from tempomem import SpatialMemory
+from tempomem.bench import recall_at_k
+from tempomem.datasets import HashEncoder, ReplicaAdapter, stream
 
 # Pinhole intrinsics (fx, fy, cx, cy) for the 16x16 synthetic frame.
 SYNTH_INTRINSICS = (10.0, 10.0, 8.0, 8.0)
@@ -69,7 +69,7 @@ def main() -> None:
 
     encoder = HashEncoder(512)  # match the default store / viz embedding_dim
     if args.scene:
-        from spatialmem.datasets import ReplicaFileReader
+        from tempomem.datasets import ReplicaFileReader
 
         # TODO: replace with the scene's real intrinsics + instance-id->label map.
         reader = ReplicaFileReader(args.scene)
@@ -92,7 +92,7 @@ def main() -> None:
         print(f"recall@5 = {report.recall:.2f}  (misses: {report.misses})")
 
     print(f"wrote {args.out}")
-    print(f"viz:  uv run spatialmem viz {args.out} -o replica_scene.html")
+    print(f"viz:  uv run tempomem viz {args.out} -o replica_scene.html")
 
 
 if __name__ == "__main__":

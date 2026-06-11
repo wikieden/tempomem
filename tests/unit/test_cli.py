@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from spatialmem import SpatialMemory
-from spatialmem.cli import main
+from tempomem import SpatialMemory
+from tempomem.cli import main
 from tests.conftest import DIM, make_det
 
 
@@ -11,7 +11,7 @@ def test_version(capsys) -> None:
     with pytest.raises(SystemExit) as e:
         main(["--version"])
     assert e.value.code == 0
-    assert "spatialmem" in capsys.readouterr().out
+    assert "tempomem" in capsys.readouterr().out
 
 
 def test_inspect(tmp_path, capsys) -> None:

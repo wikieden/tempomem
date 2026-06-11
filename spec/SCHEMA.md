@@ -1,6 +1,6 @@
 # spec · Scene-Graph Schema & Storage
 
-Normative. Bumping any field in this doc requires a migration script in `spatialmem/persist/migrations/`.
+Normative. Bumping any field in this doc requires a migration script in `tempomem/persist/migrations/`.
 
 ## Logical Model
 
@@ -164,5 +164,5 @@ Rules:
 ## Versioning
 
 - `schema_version` starts at `1` at first public release.
-- Migrations are forward-only Python scripts in `spatialmem/persist/migrations/NNN_*.py`. Each defines `up(conn)`. No `down()`.
+- Migrations are forward-only Python scripts in `tempomem/persist/migrations/NNN_*.py`. Each defines `up(conn)`. No `down()`.
 - `open()` runs all pending migrations under a single transaction. Failure rolls back; file is unchanged.

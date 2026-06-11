@@ -16,7 +16,7 @@ A clear description of the bug.
 What you expected instead.
 
 **Environment**
-- spatialmem version: (`python -c "import spatialmem; print(spatialmem.__version__)"`)
+- tempomem version: (`python -c "import tempomem; print(tempomem.__version__)"`)
 - Python:
 - OS:
 - Extras installed: (`[vec]` / `[clip]` / `[perception]` / none)

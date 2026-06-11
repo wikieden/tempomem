@@ -5,8 +5,8 @@ Normative. Anything not listed is non-public and may change without notice.
 ## Conventions
 
 - Python ≥ 3.10. Type hints required on all public symbols.
-- Public symbols re-exported from `spatialmem` top-level.
-- All public methods raise `SpatialMemError` (or subclass) on failure. No bare exceptions.
+- Public symbols re-exported from `tempomem` top-level.
+- All public methods raise `ChronotopeError` (or subclass) on failure. No bare exceptions.
 - Coordinates: right-handed, **meters**, world frame. Pose = 4×4 numpy float32 in `Tcw` (camera-from-world) form.
 - Timestamps: float seconds (UNIX epoch) **or** monotonic — caller-consistent within a store.
 - Embeddings: float32, L2-normalized, fixed dim per store (set at `open`).
@@ -20,7 +20,7 @@ class SpatialMemory:
              embedding_dim: int = 512,
              create: bool = True,
              readonly: bool = False,
-             config: SpatialMemConfig | None = None,
+             config: ChronotopeConfig | None = None,
              encoder: Encoder | None = None,           # semantic query / answer
              verbalizer: Verbalizer | None = None,     # answer()
              adapter: PerceptionAdapter | None = None  # add_frame()
@@ -235,11 +235,11 @@ class ChangeSet:
 
 ## Configuration
 
-`SpatialMemory.open(..., config=SpatialMemConfig(...))`. All thresholds live on the config object, never as method kwargs:
+`SpatialMemory.open(..., config=ChronotopeConfig(...))`. All thresholds live on the config object, never as method kwargs:
 
 ```python
 @dataclass(frozen=True, slots=True)
-class SpatialMemConfig:
+class ChronotopeConfig:
     fusion: FusionConfig = field(default_factory=FusionConfig)
     # query / persist sub-configs: planned
 ```
@@ -252,27 +252,27 @@ class SpatialMemConfig:
 Duck-typed; supply any object matching the shape. Core stays numpy-only.
 
 ```python
-class Encoder(Protocol):                 # spatialmem.encoders
+class Encoder(Protocol):                 # tempomem.encoders
     @property
     def dim(self) -> int: ...
     def encode_text(self, texts: Sequence[str]) -> np.ndarray: ...  # (N, dim) L2-norm
 
-class Verbalizer(Protocol):              # spatialmem.verbalize
+class Verbalizer(Protocol):              # tempomem.verbalize
     def complete(self, prompt: str) -> str: ...
 
-class PerceptionAdapter(Protocol):       # spatialmem.perception
+class PerceptionAdapter(Protocol):       # tempomem.perception
     def process_frame(self, rgb, depth, pose,
                       intrinsics=None) -> list[Detection]: ...
 ```
 
 Reference impl: `OpenClipEncoder` (`[clip]` extra). Concrete external-model
 integrations live in companion repos — core ships only the protocols:
-`CosmosReasonVerbalizer` + the Reasoner/Brain orchestration in **`spatialmem-brain`**;
-perception adapters (Cosmos 3 / ConceptGraphs) in **`spatialmem-perception`**.
+`CosmosReasonVerbalizer` + the Reasoner/Brain orchestration in **`mindloop`**;
+perception adapters (Cosmos 3 / ConceptGraphs) in **`worldsense`**.
 
 > Cosmos Reason is a chain-of-thought reasoning VLM — strong as an `answer()`
 > backend over the serialized scene graph, but it emits **no** world-frame 3D
-> detections, so it is not a `PerceptionAdapter`. SpatialMem remains the
+> detections, so it is not a `PerceptionAdapter`. Chronotope remains the
 > persistent 3D memory; Cosmos is the reasoning brain on top.
 
 ## Datasets
@@ -281,7 +281,7 @@ Stream per-frame ground-truth detections into a store — no perception model or
 GPU. The same object across frames converges to one node through fusion.
 
 ```python
-class DatasetSource(Protocol):           # spatialmem.datasets
+class DatasetSource(Protocol):           # tempomem.datasets
     def frames(self) -> Iterator[list[Detection]]: ...   # one list per frame
 
 def stream(mem: SpatialMemory, source: DatasetSource, *,
@@ -295,7 +295,7 @@ def stream(mem: SpatialMemory, source: DatasetSource, *,
 
 ```python
 @dataclass
-class SyntheticScene:                    # spatialmem.datasets
+class SyntheticScene:                    # tempomem.datasets
     objects: list[tuple[str, tuple[float, float, float]]]  # (label, world center)
     encoder: HashEncoder
     n_frames: int = 12
@@ -310,7 +310,7 @@ class SyntheticScene:                    # spatialmem.datasets
 always maps to the same unit vector; NOT real semantics):
 
 ```python
-class HashEncoder:                       # spatialmem.datasets
+class HashEncoder:                       # tempomem.datasets
     def __init__(self, dim: int = 64) -> None: ...
     @property
     def dim(self) -> int: ...
@@ -323,7 +323,7 @@ plugs into the same `DatasetSource` shape later.
 ## Errors
 
 ```
-SpatialMemError
+ChronotopeError
 ├── SchemaMismatchError
 ├── IngestError
 │   ├── BadDetectionError

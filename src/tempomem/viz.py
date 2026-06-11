@@ -3,7 +3,7 @@
 Produces a single self-contained HTML file: a top-down 2D scatter (world X
 horizontal, Z vertical) of node centroids with labels, plus a node table. No
 external deps, no network, no JS framework — inline canvas script + embedded
-JSON. Render via `spatialmem viz store.smem -o scene.html`.
+JSON. Render via `tempomem viz store.smem -o scene.html`.
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ _TEMPLATE = """<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SpatialMem — {title}</title>
+<title>Chronotope — {title}</title>
 <style>
   body {{ font: 14px/1.5 system-ui, sans-serif; margin: 0; background: #0e1116; color: #e6edf3; }}
   header {{ padding: 12px 18px; border-bottom: 1px solid #30363d; }}
@@ -34,7 +34,7 @@ _TEMPLATE = """<!doctype html>
 </head>
 <body>
 <header>
-  <h1>SpatialMem scene</h1>
+  <h1>Chronotope scene</h1>
   <div class="meta">{n_nodes} nodes · {n_edges} edges
     · {n_obs} observations · embedding_dim {dim}</div>
 </header>

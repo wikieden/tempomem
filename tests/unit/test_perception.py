@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from spatialmem import Detection, IngestError, PerceptionAdapter, SpatialMemory
+from tempomem import Detection, IngestError, PerceptionAdapter, SpatialMemory
 from tests.conftest import DIM
 
 

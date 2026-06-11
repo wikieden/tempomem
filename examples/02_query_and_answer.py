@@ -1,4 +1,4 @@
-"""SpatialMem M2 tour — semantic query, LLM answer, decay, resplit.
+"""Chronotope M2 tour — semantic query, LLM answer, decay, resplit.
 
 No GPU, no network. Brings up a synthetic kitchen, then exercises the M2
 surface: encoder-backed semantic query, a BYO verbalizer, confidence decay,
@@ -13,7 +13,7 @@ from pathlib import Path
 
 import numpy as np
 
-from spatialmem import Detection, SpatialMemory
+from tempomem import Detection, SpatialMemory
 
 DIM = 32
 DAY = 86400.0
@@ -23,7 +23,7 @@ class HashEncoder:
     """Deterministic stand-in for CLIP: maps text -> seeded unit vector.
 
     Same string -> same vector, so a detection labelled "mug" and the query
-    "mug" land on the same embedding. Swap for spatialmem.encoders.OpenClipEncoder
+    "mug" land on the same embedding. Swap for tempomem.encoders.OpenClipEncoder
     (the [clip] extra) for real open-vocabulary semantics.
     """
 

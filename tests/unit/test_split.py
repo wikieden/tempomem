@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from spatialmem import FusionConfig, SpatialMemConfig, SpatialMemory
+from tempomem import ChronotopeConfig, FusionConfig, SpatialMemory
 from tests.conftest import DIM, make_det
 
 
-def _merge_all_cfg() -> SpatialMemConfig:
+def _merge_all_cfg() -> ChronotopeConfig:
     # tau_merge low + huge search dilation -> identical-feature dets merge into
     # one node regardless of distance, producing a two-cluster node to split.
-    return SpatialMemConfig(
+    return ChronotopeConfig(
         fusion=FusionConfig(
             search_dilation_m=100.0,
             dist_norm_m=100.0,

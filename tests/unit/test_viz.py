@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from spatialmem import SpatialMemory, viz
-from spatialmem.cli import main
+from tempomem import SpatialMemory, viz
+from tempomem.cli import main
 from tests.conftest import DIM, make_det
 
 

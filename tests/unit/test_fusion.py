@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import numpy as np
 
-from spatialmem import Detection, SpatialMemory
-from spatialmem.fusion import iou3d, label_compat
+from tempomem import Detection, SpatialMemory
+from tempomem.fusion import iou3d, label_compat
 from tests.conftest import DIM, make_det
 
 

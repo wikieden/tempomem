@@ -5,7 +5,7 @@ import hashlib
 import numpy as np
 import pytest
 
-from spatialmem import Detection, SchemaMismatchError, SpatialMemory
+from tempomem import Detection, SchemaMismatchError, SpatialMemory
 
 DIM = 16
 

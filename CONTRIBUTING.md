@@ -1,13 +1,13 @@
-# Contributing to SpatialMem
+# Contributing to Chronotope
 
-Thanks for your interest. SpatialMem is pre-1.0 and moving fast — the API may
+Thanks for your interest. Chronotope is pre-1.0 and moving fast — the API may
 change between minor releases. Issues, bug reports, and focused PRs are welcome.
 
 ## Dev setup
 
 ```bash
-git clone https://github.com/wikieden/spatialmem.git
-cd spatialmem
+git clone https://github.com/wikieden/tempomem.git
+cd tempomem
 python -m venv .venv && . .venv/bin/activate
 pip install -e ".[dev]"          # core is numpy-only; dev adds pytest/ruff
 ```
@@ -37,7 +37,7 @@ CI runs lint + the unit matrix (3.10–3.12 × macOS/Linux) plus `[clip]` and
 - **Python ≥ 3.10**, type hints on all public signatures, PEP 8 via ruff.
 - **Core stays numpy-only.** Anything pulling torch/CUDA/native wheels goes
   behind an extra (`[clip]`, `[vec]`, `[perception]`) and lazy-imports, so
-  `import spatialmem` never drags heavy deps.
+  `import tempomem` never drags heavy deps.
 - **Tests first for new behavior.** Each feature lands with unit tests; the
   fusion path must stay deterministic (`tests/unit/test_fusion.py`).
 - **The `.smem` BLOB is the source of truth.** Indexes like `node_vec` are
@@ -49,7 +49,7 @@ CI runs lint + the unit matrix (3.10–3.12 × macOS/Linux) plus `[clip]` and
 
 | Path | What |
 |---|---|
-| `src/spatialmem/` | the library |
+| `src/tempomem/` | the library |
 | `spec/` | normative API / schema / algorithm specs — update when behavior changes |
 | `docs/` | product + roadmap + open questions |
 | `docs/sprint/` | per-milestone task breakdowns |

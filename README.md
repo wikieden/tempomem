@@ -1,9 +1,9 @@
 > 🌐 **English** · [中文](README.zh.md)
 
-# SpatialMem
+# Chronotope
 
-[![CI](https://github.com/wikieden/spatialmem/actions/workflows/ci.yml/badge.svg)](https://github.com/wikieden/spatialmem/actions/workflows/ci.yml)
-[![PyPI](https://img.shields.io/pypi/v/spatialmem)](https://pypi.org/project/spatialmem/)
+[![CI](https://github.com/wikieden/tempomem/actions/workflows/ci.yml/badge.svg)](https://github.com/wikieden/tempomem/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/tempomem)](https://pypi.org/project/tempomem/)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 
@@ -14,7 +14,7 @@ Spatial memory layer for AI agents. Turn RGB-D / point clouds into a persistent,
 ## Quickstart
 
 ```python
-from spatialmem import SpatialMemory, Detection
+from tempomem import SpatialMemory, Detection
 
 # Detections-in (BYO perception): supply label + 3D bbox + feature vector.
 mem = SpatialMemory.open("kitchen.smem", embedding_dim=512)
@@ -62,7 +62,7 @@ Runnable, no GPU: `python examples/01_quickstart.py` and `examples/02_query_and_
 | `serialize(format="prompt"/"json")` for LLM hand-off | ✅ |
 | Token-budgeted prompt — `serialize(format="prompt", max_tokens=N)` | ✅ |
 | `recall_at_k` eval harness | ✅ |
-| Read-only HTML viewer — `spatialmem viz store.smem -o scene.html` | ✅ |
+| Read-only HTML viewer — `tempomem viz store.smem -o scene.html` | ✅ |
 | RGB-D `add_frame` via `PerceptionAdapter` protocol | ✅ seam; ConceptGraphs adapter WIP (CUDA) |
 
 Core install is **numpy-only**. Heavy backends live behind extras: `[clip]`, `[vec]`, `[perception]`.
@@ -72,7 +72,7 @@ Core install is **numpy-only**. Heavy backends live behind extras: `[clip]`, `[v
 ```
 docs/        product + engineering decisions (read first)
 spec/        normative API / schema specs
-src/spatialmem/   Python package (lib)
+src/tempomem/   Python package (lib)
 examples/    runnable demos (real + simulated)
 tests/
 ```

@@ -30,9 +30,9 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - run: pip install -e ".[dev]"
-      - run: pytest -q --cov=spatialmem --cov-report=term-missing
+      - run: pytest -q --cov=tempomem --cov-report=term-missing
       - run: python examples/01_quickstart.py
-      - run: spatialmem --version
+      - run: tempomem --version
 
   clip:
     runs-on: ubuntu-latest

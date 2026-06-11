@@ -80,18 +80,18 @@ query("where is the red mug?") ──▶ Query Router
 
 | 模块 | 职责 | v0 代码行数预算 |
 |---|---|---|
-| `spatialmem.frame` | Frame / Observation 数据类 | <200 |
-| `spatialmem.adapters.conceptgraphs` | 通过 ConceptGraphs 后端将 RGB-D 转换为 observations | <600 |
-| `spatialmem.adapters.detections` | 预检测 observations（自带感知） | <200 |
-| `spatialmem.fusion` | Arbiter + 匹配评分 | <500 |
-| `spatialmem.store` | 基于 SQLite 的 Node / Edge / Episode CRUD | <600 |
-| `spatialmem.persist` | Schema 迁移、sqlite-vec、R-tree | <400 |
-| `spatialmem.query` | Router + 检索器 + verbalizer | <600 |
-| `spatialmem.serialize` | 图 → 提示文本 / JSON / DOT | <300 |
-| `spatialmem.llm` | 自带 LLM Protocol + 轻量封装 | <200 |
-| `spatialmem.viz` | Web 查看器（独立可选依赖） | <800 |
-| `spatialmem.bridges.ros2` | 可选 ROS 2 节点 | <400 |
-| `spatialmem.bridges.mem0` | 可选 Mem0 空间后端 shim | <200 |
+| `tempomem.frame` | Frame / Observation 数据类 | <200 |
+| `tempomem.adapters.conceptgraphs` | 通过 ConceptGraphs 后端将 RGB-D 转换为 observations | <600 |
+| `tempomem.adapters.detections` | 预检测 observations（自带感知） | <200 |
+| `tempomem.fusion` | Arbiter + 匹配评分 | <500 |
+| `tempomem.store` | 基于 SQLite 的 Node / Edge / Episode CRUD | <600 |
+| `tempomem.persist` | Schema 迁移、sqlite-vec、R-tree | <400 |
+| `tempomem.query` | Router + 检索器 + verbalizer | <600 |
+| `tempomem.serialize` | 图 → 提示文本 / JSON / DOT | <300 |
+| `tempomem.llm` | 自带 LLM Protocol + 轻量封装 | <200 |
+| `tempomem.viz` | Web 查看器（独立可选依赖） | <800 |
+| `tempomem.bridges.ros2` | 可选 ROS 2 节点 | <400 |
+| `tempomem.bridges.mem0` | 可选 Mem0 空间后端 shim | <200 |
 
 核心总计约 3.5k 行代码，刻意保持极小规模。
 
@@ -122,10 +122,10 @@ SQLite file
 
 `numpy`、`scipy.spatial`、`sqlite-vec`、`pillow`、`pydantic`。CLIP/SigLIP 通过 `[clip]` extra 可选启用。ConceptGraphs 适配器通过 `[conceptgraphs]` extra 安装，并固定到已测试的提交版本。
 
-其他所有内容（Torch、ROS、CUDA）均为**可选 extra**。在无 CUDA 的 Mac 上执行 `pip install spatialmem`，使用 `detections` 适配器必须能端到端正常工作。
+其他所有内容（Torch、ROS、CUDA）均为**可选 extra**。在无 CUDA 的 Mac 上执行 `pip install tempomem`，使用 `detections` 适配器必须能端到端正常工作。
 
 ## 可观测性
 
-- 结构化 JSON 日志（`spatialmem.events`），每次融合决策对应一条事件。
+- 结构化 JSON 日志（`tempomem.events`），每次融合决策对应一条事件。
 - `mem.stats()` 返回 `{n_nodes, n_edges, n_obs, last_commit_ms, store_bytes}`。
 - `mem.dump(path)` 将完整图导出为 JSON 以供调试。

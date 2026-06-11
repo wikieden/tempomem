@@ -1,4 +1,4 @@
--- SpatialMem store schema. See spec/SCHEMA.md.
+-- Chronotope store schema. See spec/SCHEMA.md.
 -- M0 note: feature vectors stored as BLOB (float32). sqlite-vec ANN tables
 -- arrive in M1; logical shape (obs_features / node_features) is preserved.
 

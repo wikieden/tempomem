@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from spatialmem import SchemaMismatchError, SpatialMemory
+from tempomem import SchemaMismatchError, SpatialMemory
 from tests.conftest import DIM, make_det
 
 

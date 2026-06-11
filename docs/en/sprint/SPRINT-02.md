@@ -2,7 +2,7 @@
 
 # Sprint 02 · Real Perception + Scale + Verbalizer (M2)
 
-**Goal:** Close the loop from raw RGB-D to answered question. Today SpatialMem is detections-in (BYO perception). M2 ships a real `add_frame(rgb, depth, pose)` perception adapter so a user streams a dataset scene and asks questions with no hand-fed detections. Plus the pieces that make it production-shaped: ANN retrieval at scale, decay/forget, and an LLM verbalizer.
+**Goal:** Close the loop from raw RGB-D to answered question. Today Chronotope is detections-in (BYO perception). M2 ships a real `add_frame(rgb, depth, pose)` perception adapter so a user streams a dataset scene and asks questions with no hand-fed detections. Plus the pieces that make it production-shaped: ANN retrieval at scale, decay/forget, and an LLM verbalizer.
 
 **Exit (from [roadmap](../03-ROADMAP.md)):** "Stream Replica scene, ask 5 questions, get 4 right" demo recorded.
 
@@ -55,7 +55,7 @@ NVIDIA open-model research done (see [05-OPEN.md](../05-OPEN.md) P1/P3 log). Ver
 - [x] split detection — `resplit()` **(V4 — built 2026-05-29)**
 - [x] sqlite-vec ANN path green (with linear fallback); `[vec]` extra installs **(V1 — built 2026-05-29)**
 - [x] `decay()` + `answer()` (verbalizer) APIs land with tests **(V2, V3 — built 2026-05-29)**
-- [x] Eval harness reports recall@k **(V5 — `spatialmem.bench.recall_at_k`)**
+- [x] Eval harness reports recall@k **(V5 — `tempomem.bench.recall_at_k`)**
 - [x] `[clip]` CI lane green **(V6 — smoke test, no weight download)**
 - [ ] Demo recorded: stream Replica scene → 5 questions → ≥4 right
 - [ ] Coverage ≥ 80% on new modules; ruff clean

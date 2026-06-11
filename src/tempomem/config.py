@@ -38,7 +38,7 @@ class FusionConfig:
 
 
 @dataclass(frozen=True, slots=True)
-class SpatialMemConfig:
+class ChronotopeConfig:
     fusion: FusionConfig = field(default_factory=FusionConfig)
     # Auto-flush threshold: if set, add_detections() calls commit() automatically
     # once _pending reaches this length, and emits a WARNING log line.

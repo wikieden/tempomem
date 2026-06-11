@@ -30,7 +30,7 @@ def test_relational_anchor_word_boundary(mem) -> None:
 
 
 def test_budget_drops_empty_parent_region(tmp_path) -> None:
-    from spatialmem import HashEncoder, SpatialMemory
+    from tempomem import HashEncoder, SpatialMemory
 
     enc = HashEncoder(DIM)
     with SpatialMemory.open(tmp_path / "b.smem", embedding_dim=DIM, encoder=enc) as mem:

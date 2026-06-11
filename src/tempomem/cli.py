@@ -1,4 +1,4 @@
-"""`spatialmem` CLI. M0: inspect a store."""
+"""`tempomem` CLI. M0: inspect a store."""
 
 from __future__ import annotations
 
@@ -44,8 +44,8 @@ def _viz(path: str, embedding_dim: int, out: str | None) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="spatialmem", description="SpatialMem CLI")
-    parser.add_argument("--version", action="version", version=f"spatialmem {__version__}")
+    parser = argparse.ArgumentParser(prog="tempomem", description="Chronotope CLI")
+    parser.add_argument("--version", action="version", version=f"tempomem {__version__}")
     sub = parser.add_subparsers(dest="cmd")
 
     p_ins = sub.add_parser("inspect", help="show store contents")

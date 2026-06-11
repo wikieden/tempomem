@@ -11,7 +11,7 @@ import pytest
 pytest.importorskip("torch")
 pytest.importorskip("open_clip")
 
-from spatialmem.encoders import OpenClipEncoder
+from tempomem.encoders import OpenClipEncoder
 
 
 def test_openclip_encode_text_shape() -> None:

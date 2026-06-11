@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from spatialmem import SchemaMismatchError, SpatialMemory, StoreError
+from tempomem import SchemaMismatchError, SpatialMemory, StoreError
 from tests.conftest import DIM, make_det
 
 

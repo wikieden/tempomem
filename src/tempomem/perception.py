@@ -1,6 +1,6 @@
 """Perception adapter seam: RGB-D frame -> open-vocab 3D detections.
 
-SpatialMem's core is detections-in (BYO perception). `add_frame` routes a raw
+Chronotope's core is detections-in (BYO perception). `add_frame` routes a raw
 RGB-D frame through a `PerceptionAdapter` to produce `Detection`s, then fuses
 them. The first concrete adapter (ConceptGraphs: SAM + Grounding DINO +
 OpenCLIP, Apache/MIT) lands behind a `[perception]` extra on a CUDA dev box —

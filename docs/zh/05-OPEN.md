@@ -55,7 +55,7 @@
 | 2026-05-29 | — | MVP 仅接收检测结果输入，感知功能推迟至 M2 | 优先赢得 API；感知安装的痛点不应成为"hello world"的阻塞项 |
 | 2026-05-29 | — | 以单个 `.smem` SQLite 文件为基本单元 | 便携、可 diff、无外部服务依赖 |
 | 2026-05-29 | — | 仓库在可运行（M0/M1）之前保持私有 | "先私有"——避免空仓库带来的弱第一印象 |
-| 2026-05-29 | B2 | 名称"spatialmem"确认无冲突 | PyPI 可用（`spatialmem`/`spatial-mem`/`spatialmemory` 均 404）；GitHub 匹配项均无关（Julia `.jl` 1★，其余 0★ 停滞）——无 Python 包或品牌冲突 |
+| 2026-05-29 | B2 | 名称"tempomem"确认无冲突 | PyPI 可用（`tempomem`/`spatial-mem`/`tempomemory` 均 404）；GitHub 匹配项均无关（Julia `.jl` 1★，其余 0★ 停滞）——无 Python 包或品牌冲突 |
 | 2026-05-29 | B4 | 许可证 = Apache-2.0 | 专利授权对于被机器人/商业技术栈引用的库至关重要；eMEM 的 MIT 更宽松但不提供专利保护 |
 | 2026-05-29 | P1 | ConceptGraphs 后端：锁定某个提交 + 软分叉至 `extras/conceptgraphs/`（vendored），不跟踪上游 | 该仓库以研究节奏推进，存在静默 API 变更；各组件（Grounding DINO + SAM + OpenCLIP）均为 Apache/MIT，与我们的 Apache-2.0 兼容 |
 | 2026-05-29 | P2 | 跳过 Hydra 适配器 | ROS 依赖是代价；NVIDIA 的 ROS 技术栈（Isaac Perceptor）还叠加了专有许可证——得不偿失 |

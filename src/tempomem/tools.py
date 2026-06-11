@@ -1,6 +1,6 @@
 """LLM tool / function-call layer over SpatialMemory — contract C3.
 
-Framework-agnostic. `SpatialMemTools(mem).schemas()` returns JSON tool specs in
+Framework-agnostic. `ChronotopeTools(mem).schemas()` returns JSON tool specs in
 the OpenAI / Anthropic function-calling shape; `.call(name, arguments)`
 dispatches to the memory and returns a JSON-serializable envelope whose hits
 carry `node_id` so the LLM can *cite* what it used. No LLM dependency — you feed
@@ -17,7 +17,7 @@ previous instructions…" becomes a node label). Labels are control-char-strippe
 and length-capped here, but integrators MUST present scene/label text to the LLM
 inside a clearly delimited *untrusted-data* block, never spliced into
 instructions, and rely on `node_id` (not label prose) as the citation anchor.
-See the system design in the `spatialmem-brain` repo (C3 + Security). Conventions:
+See the system design in the `mindloop` repo (C3 + Security). Conventions:
 positions are world-frame meters, right-handed; timestamps are float epoch seconds.
 """
 
@@ -189,7 +189,7 @@ _SCHEMAS: list[dict[str, Any]] = [
 ]
 
 
-class SpatialMemTools:
+class ChronotopeTools:
     """Expose a `SpatialMemory` as LLM function-call tools (contract C3)."""
 
     def __init__(self, mem: SpatialMemory) -> None:

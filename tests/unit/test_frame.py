@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from spatialmem import BadDetectionError, Detection
+from tempomem import BadDetectionError, Detection
 
 
 def test_feature_normalized() -> None:

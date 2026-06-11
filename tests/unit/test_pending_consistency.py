@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import sqlite3
 
-from spatialmem import SpatialMemory
+from tempomem import SpatialMemory
 from tests.conftest import DIM, make_det
 
 

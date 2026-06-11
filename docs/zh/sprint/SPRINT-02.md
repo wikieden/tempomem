@@ -2,7 +2,7 @@
 
 # Sprint 02 · 真实感知 + 规模化 + Verbalizer（M2）
 
-**目标：** 闭合从原始 RGB-D 到问题回答的完整回路。当前 SpatialMem 以 detections 为输入（BYO 感知）。M2 交付真实的 `add_frame(rgb, depth, pose)` 感知适配器，使用户可以流式传输数据集场景并直接提问，无需手动提供 detections。此外还包括使其具备生产形态的各个部件：规模化 ANN 检索、decay/forget，以及 LLM verbalizer。
+**目标：** 闭合从原始 RGB-D 到问题回答的完整回路。当前 Chronotope 以 detections 为输入（BYO 感知）。M2 交付真实的 `add_frame(rgb, depth, pose)` 感知适配器，使用户可以流式传输数据集场景并直接提问，无需手动提供 detections。此外还包括使其具备生产形态的各个部件：规模化 ANN 检索、decay/forget，以及 LLM verbalizer。
 
 **退出条件（来自 [roadmap](../03-ROADMAP.md)）：** 已录制"流式传输 Replica 场景，提问 5 个，答对 4 个"的 demo。
 
@@ -55,7 +55,7 @@
 - [x] 分裂 detection —— `resplit()` **(V4 — 已于 2026-05-29 构建)**
 - [x] sqlite-vec ANN 路径绿色（含线性回退）；`[vec]` extra 可安装 **(V1 — 已于 2026-05-29 构建)**
 - [x] `decay()` + `answer()`（verbalizer）API 已落地并有测试 **(V2, V3 — 已于 2026-05-29 构建)**
-- [x] 评估工具报告 recall@k **(V5 — `spatialmem.bench.recall_at_k`)**
+- [x] 评估工具报告 recall@k **(V5 — `tempomem.bench.recall_at_k`)**
 - [x] `[clip]` CI 通道绿色 **(V6 — 烟雾测试，不下载权重)**
 - [ ] Demo 已录制：流式传输 Replica 场景 → 5 个问题 → ≥4 个正确
 - [ ] 新模块覆盖率 ≥ 80%；ruff 检查通过

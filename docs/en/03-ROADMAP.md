@@ -28,10 +28,10 @@ task-level execution lives in [DEV-PLAN.md](DEV-PLAN.md).**
 - ✅ Repo, license (Apache-2.0), CI matrix (3.10–3.12 × mac/linux), package structure
 - ✅ `Detection` / `Observation` / `Node` / `Edge` value objects + JSON round-trip
 - ✅ SQLite schema + forward-only migrations (sqlite-vec wiring moved to M2 — see note)
-- ✅ `pip install spatialmem` works on Mac (no CUDA), no real perception
+- ✅ `pip install tempomem` works on Mac (no CUDA), no real perception
 - ✅ `examples/01_quickstart.py` — fake detections in, query out
 
-**Exit met:** `pytest -q` green; `import spatialmem` on a clean Python 3.11 venv works.
+**Exit met:** `pytest -q` green; `import tempomem` on a clean Python 3.11 venv works.
 
 > Deviation: M0 stored vectors as BLOB (numpy-only); sqlite-vec ANN landed in M2 (V1) behind the `[vec]` extra with a linear fallback. Logged in [05-OPEN](05-OPEN.md).
 
@@ -42,7 +42,7 @@ task-level execution lives in [DEV-PLAN.md](DEV-PLAN.md).**
 - ✅ `query(...)` → spatial + temporal + keyword retrieval, returns nodes
 - ✅ **Semantic query** (pulled forward from M2): BYO `Encoder` protocol + `OpenClipEncoder` (`[clip]` extra), cosine over node features
 - ✅ `serialize(format="prompt"|"json")` → compact graph text
-- ✅ Web viewer (read-only) — `spatialmem viz` exports a self-contained HTML scene (built in M2)
+- ✅ Web viewer (read-only) — `tempomem viz` exports a self-contained HTML scene (built in M2)
 - ⬜ Replica/ScanNet RGB-D demo — needs the M2 perception adapter (CUDA)
 
 **Exit:** README quickstart runs verbatim on a clean machine (`examples/01` + `02`). Replica demo rolls into M2.
@@ -79,12 +79,12 @@ Blocked on a CUDA dev box:
 
 ## M3 · Real Robot Demo + ROS 2 Adapter ⬜
 
-- ROS 2 bridge node (subscribe RGB-D topics, publish `/spatialmem/scene_graph`)
+- ROS 2 bridge node (subscribe RGB-D topics, publish `/tempomem/scene_graph`)
 - Public demo: mobile robot or AR session, multi-day persistence
 - Benchmark vs eMEM on a shared dataset (open-vocab queries) — reuses `bench.recall_at_k`
 - First external integration writeup (target: a Brain2Robot / L3-planner reference loop)
 - v0.1.0 PyPI release + launch post
-- 3D web viewer (the M2 `spatialmem viz` is a 2D top-down read-only start)
+- 3D web viewer (the M2 `tempomem viz` is a 2D top-down read-only start)
 
 **Exit:** 100 GitHub ★, 3 external users in Discord, 1 cited integration.
 

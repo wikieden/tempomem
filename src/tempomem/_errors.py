@@ -3,15 +3,15 @@
 from __future__ import annotations
 
 
-class SpatialMemError(Exception):
-    """Base for all SpatialMem errors."""
+class ChronotopeError(Exception):
+    """Base for all Chronotope errors."""
 
 
-class SchemaMismatchError(SpatialMemError):
+class SchemaMismatchError(ChronotopeError):
     """Store on disk disagrees with requested/known schema (version or embedding_dim)."""
 
 
-class IngestError(SpatialMemError):
+class IngestError(ChronotopeError):
     """Ingest failed."""
 
 
@@ -23,13 +23,13 @@ class AdapterError(IngestError):
     """A perception adapter failed."""
 
 
-class QueryError(SpatialMemError):
+class QueryError(ChronotopeError):
     """Query failed."""
 
 
-class StoreError(SpatialMemError):
+class StoreError(ChronotopeError):
     """Persistence-layer failure."""
 
 
-class ToolError(SpatialMemError):
+class ToolError(ChronotopeError):
     """LLM tool dispatch failed (unknown tool or bad arguments)."""

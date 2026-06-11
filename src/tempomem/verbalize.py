@@ -1,6 +1,6 @@
 """LLM verbalizer: turn retrieved nodes into a natural-language answer.
 
-BYO model — SpatialMem ships no LLM dependency and no API key. Supply any
+BYO model — Chronotope ships no LLM dependency and no API key. Supply any
 object implementing the `Verbalizer` protocol (wrap OpenAI / Anthropic /
 Ollama / a local model). See spec/QUERY-ROUTER.md.
 """

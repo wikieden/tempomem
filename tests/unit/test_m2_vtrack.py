@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from spatialmem import QueryError, SpatialMemory
-from spatialmem.bench import recall_at_k
+from tempomem import QueryError, SpatialMemory
+from tempomem.bench import recall_at_k
 from tests.conftest import DIM, make_det
 
 DAY = 86400.0

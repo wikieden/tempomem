@@ -80,18 +80,18 @@ query("where is the red mug?") ──▶ Query Router
 
 | Module | Responsibility | LOC budget v0 |
 |---|---|---|
-| `spatialmem.frame` | Frame / Observation dataclasses | <200 |
-| `spatialmem.adapters.conceptgraphs` | RGB-D → observations via ConceptGraphs backend | <600 |
-| `spatialmem.adapters.detections` | Pre-detected observations (BYO perception) | <200 |
-| `spatialmem.fusion` | Arbiter + match scoring | <500 |
-| `spatialmem.store` | Node / Edge / Episode CRUD over SQLite | <600 |
-| `spatialmem.persist` | Schema migrations, sqlite-vec, R-tree | <400 |
-| `spatialmem.query` | Router + retrievers + verbalizer | <600 |
-| `spatialmem.serialize` | Graph → prompt text / JSON / DOT | <300 |
-| `spatialmem.llm` | BYO-LLM Protocol + thin wrappers | <200 |
-| `spatialmem.viz` | Web viewer (separate optional dep) | <800 |
-| `spatialmem.bridges.ros2` | optional ROS 2 node | <400 |
-| `spatialmem.bridges.mem0` | optional Mem0 spatial-backend shim | <200 |
+| `tempomem.frame` | Frame / Observation dataclasses | <200 |
+| `tempomem.adapters.conceptgraphs` | RGB-D → observations via ConceptGraphs backend | <600 |
+| `tempomem.adapters.detections` | Pre-detected observations (BYO perception) | <200 |
+| `tempomem.fusion` | Arbiter + match scoring | <500 |
+| `tempomem.store` | Node / Edge / Episode CRUD over SQLite | <600 |
+| `tempomem.persist` | Schema migrations, sqlite-vec, R-tree | <400 |
+| `tempomem.query` | Router + retrievers + verbalizer | <600 |
+| `tempomem.serialize` | Graph → prompt text / JSON / DOT | <300 |
+| `tempomem.llm` | BYO-LLM Protocol + thin wrappers | <200 |
+| `tempomem.viz` | Web viewer (separate optional dep) | <800 |
+| `tempomem.bridges.ros2` | optional ROS 2 node | <400 |
+| `tempomem.bridges.mem0` | optional Mem0 spatial-backend shim | <200 |
 
 Total core ~3.5k LOC. Aggressively small on purpose.
 
@@ -122,10 +122,10 @@ One file = portable, diffable demo state, easy backup. No external services in v
 
 `numpy`, `scipy.spatial`, `sqlite-vec`, `pillow`, `pydantic`. CLIP/SigLIP optional via `[clip]` extra. ConceptGraphs adapter installed via `[conceptgraphs]` extra and pinned to a tested commit.
 
-Everything else (Torch, ROS, CUDA) is **optional extras**. `pip install spatialmem` on a Mac with no CUDA must work end-to-end with the `detections` adapter.
+Everything else (Torch, ROS, CUDA) is **optional extras**. `pip install tempomem` on a Mac with no CUDA must work end-to-end with the `detections` adapter.
 
 ## Observability
 
-- Structured JSON logs (`spatialmem.events`) with one event per fusion decision.
+- Structured JSON logs (`tempomem.events`) with one event per fusion decision.
 - `mem.stats()` returns `{n_nodes, n_edges, n_obs, last_commit_ms, store_bytes}`.
 - `mem.dump(path)` exports full graph as JSON for debugging.

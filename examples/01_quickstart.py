@@ -1,4 +1,4 @@
-"""SpatialMem M0 quickstart — synthetic kitchen, no GPU, no network.
+"""Chronotope M0 quickstart — synthetic kitchen, no GPU, no network.
 
 Run: python examples/01_quickstart.py
 """
@@ -10,7 +10,7 @@ from pathlib import Path
 
 import numpy as np
 
-from spatialmem import Detection, SpatialMemory
+from tempomem import Detection, SpatialMemory
 
 DIM = 32  # tiny synthetic feature dim for the demo
 

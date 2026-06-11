@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from spatialmem import StoreError
+from tempomem import StoreError
 from tests.conftest import make_det
 
 

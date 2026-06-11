@@ -4,7 +4,7 @@
 
 ## The Empty Cell
 
-| Capability | ConceptGraphs | Hydra | Open3DSG | DovSG | nvblox | eMEM | Mem0 | **SpatialMem** |
+| Capability | ConceptGraphs | Hydra | Open3DSG | DovSG | nvblox | eMEM | Mem0 | **Chronotope** |
 |---|---|---|---|---|---|---|---|---|
 | Open-vocab semantics | ✅ | △ | ✅ | ✅ | △ | ✗ | ✗ | **✅** |
 | Hierarchical scene graph | ✗ | ✅ | ✗ | ✗ | ✗ | △ | ✅ (text) | **✅** |
@@ -26,7 +26,7 @@ No row in the existing market hits all eight cells. That's the wedge.
 
 ### Mem0 — adjacent, NOT competitor
 - **Posture:** ally / inspiration. They own text memory. We complement.
-- **Strategy:** ship a `mem0` adapter so a Mem0-using agent can plug SpatialMem in as the "spatial backend" and unified memory works across modalities. Co-marketing potential.
+- **Strategy:** ship a `mem0` adapter so a Mem0-using agent can plug Chronotope in as the "spatial backend" and unified memory works across modalities. Co-marketing potential.
 
 ### ConceptGraphs / Hydra / Open3DSG / DovSG — upstream
 - **Posture:** these are *perception backends* we can call from inside our ingest layer. Not competitors — suppliers.
@@ -40,7 +40,7 @@ No row in the existing market hits all eight cells. That's the wedge.
 
 ## Three-sentence pitch (memorize)
 
-> Mem0 cracked text memory for agents. NVIDIA cracked perception for embodied AI. Nothing cracked the spatial memory in between — every robotics lab rebuilds it. SpatialMem is the open, pip-installable, framework-agnostic spatial memory layer that turns RGB-D streams into a persistent, LLM-queryable scene graph.
+> Mem0 cracked text memory for agents. NVIDIA cracked perception for embodied AI. Nothing cracked the spatial memory in between — every robotics lab rebuilds it. Chronotope is the open, pip-installable, framework-agnostic spatial memory layer that turns RGB-D streams into a persistent, LLM-queryable scene graph.
 
 ## Five-Year Threat Model
 

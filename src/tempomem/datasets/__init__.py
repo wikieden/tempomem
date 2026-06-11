@@ -36,7 +36,7 @@ class HashEncoder:
 
     For demos/tests only — same string always maps to the same vector, so a
     detection labelled "mug" and the query "mug" align. NOT real semantics;
-    use `spatialmem.encoders.OpenClipEncoder` (the `[clip]` extra) for that.
+    use `tempomem.encoders.OpenClipEncoder` (the `[clip]` extra) for that.
     """
 
     def __init__(self, dim: int = 64) -> None:
@@ -257,6 +257,6 @@ def _import_imageio():  # pragma: no cover - thin optional-dep shim
         import imageio.v3 as iio  # pyright: ignore[reportMissingImports]
     except ImportError as e:
         raise ImportError(
-            "ReplicaFileReader needs the [replica] extra: pip install 'spatialmem[replica]'"
+            "ReplicaFileReader needs the [replica] extra: pip install 'tempomem[replica]'"
         ) from e
     return iio

@@ -2,16 +2,16 @@
 
 # Sprint 00 · Skeleton (M0)
 
-**Goal:** A clean-install `import spatialmem` works on Mac (no CUDA), schema + dataclasses round-trip, and a 50-line fake-detections demo runs green. No real perception. No fusion intelligence yet — just the rails.
+**Goal:** A clean-install `import tempomem` works on Mac (no CUDA), schema + dataclasses round-trip, and a 50-line fake-detections demo runs green. No real perception. No fusion intelligence yet — just the rails.
 
-**Exit criteria (from [roadmap](../03-ROADMAP.md)):** `pytest -q` green; `import spatialmem` on a clean Python 3.11 venv works; demo notebook produces a queryable store.
+**Exit criteria (from [roadmap](../03-ROADMAP.md)):** `pytest -q` green; `import tempomem` on a clean Python 3.11 venv works; demo notebook produces a queryable store.
 
 ## Task Breakdown
 
 | ID | Task | Output | Depends on | Est (CC) |
 |---|---|---|---|---|
 | T1 | `pyproject.toml` — hatch, deps (numpy/scipy/sqlite-vec/pillow/pydantic), extras stubs, ruff+pyright config | installable skeleton | — | 20 min |
-| T2 | Package skeleton `src/spatialmem/__init__.py` with `__all__` + version | `import spatialmem` works | T1 | 10 min |
+| T2 | Package skeleton `src/tempomem/__init__.py` with `__all__` + version | `import tempomem` works | T1 | 10 min |
 | T3 | `frame.py` — `Detection`, `Observation` frozen dataclasses + JSON round-trip | typed value objects | T2 | 30 min |
 | T4 | `persist/schema.sql` + `persist/migrations/001_init.py` — all tables from [SCHEMA.md](../../../spec/SCHEMA.md) | empty store creatable | T2 | 40 min |
 | T5 | `persist/__init__.py` — open/create, sqlite-vec + rtree load, migration runner, WAL | `SpatialMemory.open()` returns a live store | T4 | 40 min |
@@ -19,7 +19,7 @@
 | T7 | Fusion **stub** — every observation = new node (no merge logic yet) | observations land as nodes | T6 | 20 min |
 | T8 | `query.py` minimal — `recent()` + `spatial()` (R-tree), no semantic yet | nodes retrievable | T6 | 30 min |
 | T9 | `serialize.py` — `format="json"` + basic `format="prompt"` | graph → text | T6 | 30 min |
-| T10 | `cli.py` — `spatialmem inspect <file>` | counts + sample nodes | T6 | 20 min |
+| T10 | `cli.py` — `tempomem inspect <file>` | counts + sample nodes | T6 | 20 min |
 | T11 | `examples/01_quickstart.py` — synthetic kitchen detections in, query out | runnable demo | T7, T8, T9 | 20 min |
 | T12 | Tests: schema round-trip, store CRUD, JSON round-trip, demo-as-test | `pytest -q` green | T3–T9 | 40 min |
 | T13 | CI: `.github/workflows/ci.yml` — lint + unit on 3.10/3.11/3.12 × mac/linux | green badge | T12 | 30 min |
@@ -49,7 +49,7 @@ T3 and T4 can run in parallel after T2. T7/T8/T9/T10 all fan out from T6.
 
 - [x] `pip install -e .` on clean Python 3.12 venv, no CUDA (numpy-only dep)
 - [x] `python examples/01_quickstart.py` prints a query hit
-- [x] `spatialmem inspect kitchen.smem` shows node counts
+- [x] `tempomem inspect kitchen.smem` shows node counts
 - [x] `pytest -q` green (18 tests); coverage **95%** total, core modules 93–100%
 - [ ] CI green on both OS — verified on first push
 - [x] B2 + B4 resolved (name clear, Apache-2.0) — see [05-OPEN.md](../05-OPEN.md)

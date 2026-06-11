@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from spatialmem import SpatialMemory
-from spatialmem.bench import decay_forget, persistence_after_reopen, recall_at_k
+from tempomem import SpatialMemory
+from tempomem.bench import decay_forget, persistence_after_reopen, recall_at_k
 from tests.conftest import DIM, make_det
 
 

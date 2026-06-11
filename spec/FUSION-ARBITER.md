@@ -1,6 +1,6 @@
 # spec · Fusion Arbiter
 
-The arbiter decides, for every incoming `Observation`, whether to **merge** it into an existing `Node`, **create** a new node, or **reject** it. This is the single most consequential algorithm in the system; the rest of SpatialMem is plumbing around it.
+The arbiter decides, for every incoming `Observation`, whether to **merge** it into an existing `Node`, **create** a new node, or **reject** it. This is the single most consequential algorithm in the system; the rest of Chronotope is plumbing around it.
 
 ## Inputs
 

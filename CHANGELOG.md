@@ -1,10 +1,19 @@
 # Changelog
 
-All notable changes to SpatialMem are documented here. Format follows
+All notable changes to Chronotope are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); versions follow SemVer
 (pre-1.0, the API may change between minor releases).
 
 ## [Unreleased] — M2 in progress
+
+### Changed
+- **BREAKING: package renamed `spatialmem` → `tempomem`** (product name:
+  Chronotope). Import path, CLI entry point, logger namespace, and the
+  `SpatialMemConfig`/`SpatialMemError`/`SpatialMemTools` classes (now
+  `ChronotopeConfig`/`ChronotopeError`/`ChronotopeTools`) all follow. The
+  `SpatialMemory` class, `.smem` format, and on-disk schema are unchanged.
+  Companion packages renamed: `spatialmem-perception` → `worldsense`,
+  `spatialmem-brain` → `mindloop`. Nothing was published under the old names.
 
 ### Added
 - **`datasets.ReplicaAdapter` + `datasets.gt_detections_from_frame`** — parse a
@@ -21,7 +30,7 @@ All notable changes to SpatialMem are documented here. Format follows
   so callers serialize a query-relevant subgraph (keeping relational anchors like
   the table in "what's on the table") instead of the whole scene. Powers
   `Brain.ask`'s retrieval context (was: whole-graph truncation, VISION §2.3 / OQ-6).
-- **`SpatialMemConfig.max_pending_obs`** — optional auto-flush bound: when set,
+- **`ChronotopeConfig.max_pending_obs`** — optional auto-flush bound: when set,
   `add_detections()` calls `commit()` automatically once `_pending` reaches the
   threshold and logs a `WARNING`. `None` (default) keeps the caller responsible
   for `commit()`; guards `_pending` from unbounded growth in long-running ingest
@@ -32,7 +41,7 @@ All notable changes to SpatialMem are documented here. Format follows
 - **`answer(query, verbalizer=...)`** — retrieve → serialize scene prompt →
   BYO LLM. `Verbalizer` protocol (wrap OpenAI / Anthropic / Ollama); no bundled
   model or key. `SpatialMemory.open(verbalizer=...)` or per-call.
-- **`spatialmem.bench.recall_at_k`** — lightweight retrieval eval over scripted
+- **`tempomem.bench.recall_at_k`** — lightweight retrieval eval over scripted
   `(query, expected_label)` cases; powers the M2 demo metric.
 - **`[clip]` CI lane** — installs the extra and smoke-tests `OpenClipEncoder`
   shape/dim against real Torch (random init, no weight download).
@@ -47,8 +56,8 @@ All notable changes to SpatialMem are documented here. Format follows
   seam. `add_frame` routes a posed frame through a configured adapter to
   detections, then fuses. Any backend or test stub plugs in; the concrete
   ConceptGraphs adapter lands behind a `[perception]` extra (needs CUDA).
-- **Read-only HTML viewer** — `spatialmem viz store.smem -o scene.html` (and
-  `spatialmem.viz.to_html`). Self-contained: top-down 2D scatter of node
+- **Read-only HTML viewer** — `tempomem viz store.smem -o scene.html` (and
+  `tempomem.viz.to_html`). Self-contained: top-down 2D scatter of node
   centroids + a node table, no JS framework / network. (Deferred M1 web viewer.)
 - **Dataset streaming** — `DatasetSource` protocol + `stream(mem, source)` +
   `SyntheticScene` (deterministic multi-frame GT scene) + `HashEncoder` fixture.
@@ -127,7 +136,7 @@ All notable changes to SpatialMem are documented here. Format follows
   `tau_merge`, created as a new node, or rejected below `tau_obs`. Two
   sightings of the same object now converge to one node with aggregated
   geometry/feature/label distribution. See `spec/FUSION-ARBITER.md`.
-- `FusionConfig` / `SpatialMemConfig` — tunable thresholds and score weights,
+- `FusionConfig` / `ChronotopeConfig` — tunable thresholds and score weights,
   passed via `SpatialMemory.open(config=...)`.
 - `store.candidates_near`, `store.update_node` — proximity query + merge update.
 - `fusion.iou3d`, `fusion.label_compat`, `fusion.score` — scoring primitives.
@@ -149,5 +158,5 @@ All notable changes to SpatialMem are documented here. Format follows
 - M0 skeleton: installable package (`numpy`-only default dep), `Detection` /
   `Observation` value objects, single-file `.smem` SQLite store with
   forward-only migrations, Node/Edge/Episode CRUD, temporal + spatial +
-  keyword retrieval, JSON + prompt serialization, `spatialmem inspect` CLI.
+  keyword retrieval, JSON + prompt serialization, `tempomem inspect` CLI.
 - Synthetic-kitchen quickstart, 18 tests, CI matrix (3.10/3.11/3.12 × mac/linux).

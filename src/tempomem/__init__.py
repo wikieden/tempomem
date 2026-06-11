@@ -1,4 +1,4 @@
-"""SpatialMem — spatial memory layer for AI agents.
+"""Chronotope — spatial memory layer for AI agents.
 
 Public API. See spec/API.md. Detections-in ingest, incremental fusion, spatial
 / temporal / semantic query, BYO encoder + verbalizer, sqlite-vec ANN, decay /
@@ -19,14 +19,14 @@ from . import fusion, persist, relations, serialize, store
 from ._errors import (
     AdapterError,
     BadDetectionError,
+    ChronotopeError,
     IngestError,
     QueryError,
     SchemaMismatchError,
-    SpatialMemError,
     StoreError,
     ToolError,
 )
-from .config import FusionConfig, SpatialMemConfig
+from .config import ChronotopeConfig, FusionConfig
 from .datasets import DatasetSource, HashEncoder, SyntheticScene, stream
 from .encoders import Encoder
 from .frame import Detection, Observation
@@ -40,18 +40,21 @@ from .query import semantic_keyword as _semantic_keyword
 from .query import semantic_vec as _semantic_vec
 from .query import spatial as _spatial
 from .store import StoreStats
-from .tools import SpatialMemTools
+from .tools import ChronotopeTools
 from .verbalize import Verbalizer
 from .verbalize import build_answer_prompt as _build_answer_prompt
 
 __version__ = "0.1.0a1"
 
-_log = logging.getLogger("spatialmem.memory")
+_log = logging.getLogger("tempomem.memory")
 
 __all__ = [
     "AdapterError",
     "BadDetectionError",
     "ChangeSet",
+    "ChronotopeConfig",
+    "ChronotopeError",
+    "ChronotopeTools",
     "CommitStats",
     "DatasetSource",
     "Detection",
@@ -65,9 +68,6 @@ __all__ = [
     "QueryError",
     "QueryResult",
     "SchemaMismatchError",
-    "SpatialMemConfig",
-    "SpatialMemError",
-    "SpatialMemTools",
     "SpatialMemory",
     "StoreError",
     "StoreStats",
@@ -125,7 +125,7 @@ class SpatialMemory:
         conn: sqlite3.Connection,
         embedding_dim: int,
         readonly: bool,
-        config: SpatialMemConfig | None = None,
+        config: ChronotopeConfig | None = None,
         encoder: Encoder | None = None,
         verbalizer: Verbalizer | None = None,
         adapter: PerceptionAdapter | None = None,
@@ -137,7 +137,7 @@ class SpatialMemory:
         self._conn = conn
         self._dim = embedding_dim
         self._readonly = readonly
-        self._cfg = config or SpatialMemConfig()
+        self._cfg = config or ChronotopeConfig()
         self._encoder = encoder
         self._verbalizer = verbalizer
         self._adapter = adapter
@@ -153,7 +153,7 @@ class SpatialMemory:
         embedding_dim: int = 512,
         create: bool = True,
         readonly: bool = False,
-        config: SpatialMemConfig | None = None,
+        config: ChronotopeConfig | None = None,
         encoder: Encoder | None = None,
         verbalizer: Verbalizer | None = None,
         adapter: PerceptionAdapter | None = None,
@@ -210,7 +210,7 @@ class SpatialMemory:
         limit = self._cfg.max_pending_obs
         if limit is not None and len(self._pending) >= limit:
             _log.warning(
-                "spatialmem: auto-flushing %d pending observations "
+                "tempomem: auto-flushing %d pending observations "
                 "(max_pending_obs=%d); call commit() explicitly to avoid this",
                 len(self._pending),
                 limit,

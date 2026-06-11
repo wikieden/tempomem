@@ -9,8 +9,8 @@ import pytest
 
 pytest.importorskip("sqlite_vec")
 
-from spatialmem import Detection, SpatialMemory
-from spatialmem import vec as _vec
+from tempomem import Detection, SpatialMemory
+from tempomem import vec as _vec
 
 DIM = 16
 

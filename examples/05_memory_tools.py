@@ -1,8 +1,8 @@
-"""C3 — expose SpatialMem as LLM function-call tools (offline, no LLM/GPU).
+"""C3 — expose Chronotope as LLM function-call tools (offline, no LLM/GPU).
 
 Hand `tools.schemas()` to any function-calling LLM; route the tool calls it
 emits to `tools.call(name, args)`. Returns JSON whose hits carry `node_id` so
-the model can cite what it used. See the design in the `spatialmem-brain` repo.
+the model can cite what it used. See the design in the `mindloop` repo.
 
 Run: python examples/05_memory_tools.py
 """
@@ -15,7 +15,7 @@ import tempfile
 
 import numpy as np
 
-from spatialmem import Detection, SpatialMemory, SpatialMemTools
+from tempomem import ChronotopeTools, Detection, SpatialMemory
 
 DIM = 16
 
@@ -47,7 +47,7 @@ def main() -> None:
         mem.commit()
         mem.define_region("kitchen", (0.0, -1.0, 0.0), (3.0, 1.0, 2.0))
 
-        tools = SpatialMemTools(mem)
+        tools = ChronotopeTools(mem)
         print("== tool schemas (hand these to your LLM) ==")
         print(json.dumps([s["name"] for s in tools.schemas()]), "\n")
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from spatialmem import DatasetSource, HashEncoder, SpatialMemory, SyntheticScene, stream
-from spatialmem.bench import recall_at_k
+from tempomem import DatasetSource, HashEncoder, SpatialMemory, SyntheticScene, stream
+from tempomem.bench import recall_at_k
 
 DIM = 64
 

@@ -5,14 +5,14 @@ Normative for all contributors, including future-me.
 ## Repo Layout
 
 ```
-spatialmem/                ← repo root
+tempomem/                ← repo root
 ├── README.md
 ├── LICENSE                  Apache-2.0
 ├── pyproject.toml           PEP 621 + hatch backend
 ├── docs/                    product + design decisions
 ├── spec/                    normative specs (this dir)
 ├── src/
-│   └── spatialmem/
+│   └── tempomem/
 │       ├── __init__.py
 │       ├── frame.py
 │       ├── store.py
@@ -57,14 +57,14 @@ spatialmem/                ← repo root
 - Python **≥ 3.10**; CI matrix 3.10 / 3.11 / 3.12.
 - Build: **hatch**.
 - Lint + format: **ruff** (`select = ["E","F","I","B","UP","SIM","TID","PERF","RUF"]`), line length 100.
-- Type-check: **pyright** strict on `src/spatialmem/`. `# type: ignore` requires a `# reason: ...` suffix.
+- Type-check: **pyright** strict on `src/tempomem/`. `# type: ignore` requires a `# reason: ...` suffix.
 - Tests: **pytest**, **pytest-cov**, **hypothesis** for property tests on fusion.
 - Pre-commit: ruff, pyright, end-of-file fixer, no large files.
 - Docs: built docs (M3+) via **mkdocs-material**.
 
 ## Package Hygiene
 
-- Public API surface lives in `src/spatialmem/__init__.py` `__all__`. Anything not listed is private.
+- Public API surface lives in `src/tempomem/__init__.py` `__all__`. Anything not listed is private.
 - Default install must not pull Torch, CUDA, ROS, or any binary > 50 MB.
 - Optional features ship as PEP 508 extras: `[clip]`, `[conceptgraphs]`, `[ros2]`, `[mem0]`, `[viz]`, `[all]`.
 - Native extensions only via well-known wheels (sqlite-vec, etc.). No build-from-source dependencies in default install.
@@ -73,7 +73,7 @@ spatialmem/                ← repo root
 
 - Dataclasses (`frozen=True, slots=True`) for value types. Pydantic only at user-facing config boundary.
 - No global mutable state. `SpatialMemory` is the only stateful object.
-- Logging via `logging.getLogger("spatialmem.<module>")`. Never `print()`.
+- Logging via `logging.getLogger("tempomem.<module>")`. Never `print()`.
 - Public methods document units + frames in their docstring. Repeat even if redundant — these are the bugs we will hit.
 - Returns over raises for expected absence (`Optional`, `[]`). Raise only for programmer error or IO failure.
 - No comments narrating *what* the code does. Comments only for *why*, with a referenced spec section.
@@ -83,9 +83,9 @@ spatialmem/                ← repo root
 `add_detections()` only *stages* observations into `_pending`; `commit()` is the
 sole drainer that fuses them (fuse-before-persist). A long-running ingest loop
 that forgets to `commit()` would let `_pending` grow without bound.
-`SpatialMemConfig.max_pending_obs` is an optional guard: set to `N >= 1`,
+`ChronotopeConfig.max_pending_obs` is an optional guard: set to `N >= 1`,
 `add_detections()` calls `commit()` automatically once `len(_pending) >= N`,
-emitting a `WARNING` on the `spatialmem.memory` logger. The auto-flush routes
+emitting a `WARNING` on the `tempomem.memory` logger. The auto-flush routes
 through the *same* `commit()`, so fuse-before-persist still holds (no
 orphan/unfused rows) and every observation keeps its per-call `episode` binding.
 `None` (default) disables the guard — the caller owns `commit()`. A threshold
@@ -146,7 +146,7 @@ A PR cannot merge with any required check red.
 | `commit()` over 100 obs | M2 Air | < 30 ms p50 |
 | `query(text)` over 10k nodes | M2 Air | < 150 ms p95 |
 | Cold `open()` on 100 MB store | M2 Air | < 200 ms |
-| `pip install spatialmem` | clean venv | < 25 s |
+| `pip install tempomem` | clean venv | < 25 s |
 
 If a PR regresses any budget > 20%, CI blocks. Hot-fixing a regression by raising a budget requires sign-off in the PR description.
 

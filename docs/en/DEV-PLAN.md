@@ -3,7 +3,7 @@
 # Development Plan — 统一执行追踪（系统级）
 
 This is the **single execution tracker** for the SpatialRobot workspace (three
-packages: `spatialmem` / `spatialmem-perception` / `spatialmem-brain`).
+packages: `tempomem` / `worldsense` / `mindloop`).
 
 - **Strategic anchor (WHY / quarterly WHAT):** [docs/VISION.md](../../../docs/en/VISION.md)
   §8 (P1/P2/P3). That file is authoritative for positioning, wedge, risks, GTM.
@@ -26,9 +26,9 @@ packages: `spatialmem` / `spatialmem-perception` / `spatialmem-brain`).
 - `v0.1.0a1` tagged, repo public. **176 tests pass (2 skipped)** across the
   workspace, core install numpy-only, `pyright` clean on core (0 errors).
 - **Architecture already split** (this is done, not future): perception lives in
-  the companion `spatialmem-perception` (`BoxDetectorAdapter` + `Detector3D`
+  the companion `worldsense` (`BoxDetectorAdapter` + `Detector3D`
   seam + cam→world geometry + `ImageEncoder`); the brain lives in
-  `spatialmem-brain` (`Brain` / `Reasoner` / `CosmosReasonVerbalizer`). Core
+  `mindloop` (`Brain` / `Reasoner` / `CosmosReasonVerbalizer`). Core
   keeps only the `PerceptionAdapter` / `Verbalizer` protocols.
 - **M0 ✅ · M1 ✅ · M2 🟡** — memory-deepening + retrieval tracks complete; the
   M2 recorded demo and learned (GPU) perception are the remaining gaps.
@@ -61,7 +61,7 @@ one MEDIUM (top-k cap → default `k=64`), and several LOW, all addressed.
 
 ## Scope discipline — we are a MEMORY system, not perception
 
-SpatialMem stores and queries spatial memory. **Recognition is not our job** —
+Chronotope stores and queries spatial memory. **Recognition is not our job** —
 like Mem0 doesn't do speech-to-text, we don't do object detection. Input is
 caller-supplied detections (BYO perception). Consequences:
 
@@ -129,7 +129,7 @@ GPU perception sits off to the side until hardware lands.
 
 > **Fixed** in #1 above; kept here as the record of what was wrong.
 
-`spatialmem-brain/src/spatialmem_brain/brain.py:61` (pre-fix) — the docstring says
+`mindloop/src/mindloop/brain.py:61` (pre-fix) — the docstring says
 "Retrieve memory → reason → answer", but the body does **not** retrieve:
 
 ```python
@@ -157,10 +157,10 @@ shape. Evidence:
 
 | # | Task | Package | GPU | Rationale (evidence) |
 |---|---|---|---|---|
-| B-T1 | **Close the loop** — refactor Brain2Robot into `spatialmem-brain`: `Brain.ask()` grows from answer-only to propose-action → execute → write the outcome back into memory | brain | no | a brain without a loop is a QA bot; refactor target decided 2026-06-09 |
+| B-T1 | **Close the loop** — refactor Brain2Robot into `mindloop`: `Brain.ask()` grows from answer-only to propose-action → execute → write the outcome back into memory | brain | no | a brain without a loop is a QA bot; refactor target decided 2026-06-09 |
 | B-T2 | **Dual-reasoner A/B** — second vLLM endpoint serving RoboBrain 2.5-8B vs Cosmos-Reason2-8B, scored on eval set #3 (makes the "Dual Reasoner backend" bullet above concrete) | brain | serving only | vendor benchmarks only compare Cosmos-Reason**1**; what matters is who reads *our* scene-graph serialization better |
 | B-T3 | **Memory add-ons** — append-only event-log table (scene deltas); embodiment partition (robot state / skills / battery); serialize a context bundle (scene ⊕ recent action feedback ⊕ robot state); align relation vocabulary to `{on,in,left,right,front,back,near}` | core | no | STEM ablations: drop spatial memory → steps 11.6→58.1; drop embodiment memory → 0% SR; 30.2% of failures = memory-noise accumulation (the fusion arbiter's exact target) |
-| B-T4 | **MCP-ify the memory** — expose `spatialmem` query/answer/commit as an MCP server | core | no | RoboOS issues #76/#73 are live unmet demand for an open scene-graph memory component; locks the niche |
+| B-T4 | **MCP-ify the memory** — expose `tempomem` query/answer/commit as an MCP server | core | no | RoboOS issues #76/#73 are live unmet demand for an open scene-graph memory component; locks the niche |
 
 Sequencing: after P1 exit (#4); B-T3 is CPU-only and can fold in
 opportunistically alongside the parallelizable P1 items. Out of scope
@@ -173,10 +173,10 @@ support; RoboBrain has none documented).
 
 | ID | Task |
 |---|---|
-| D1 | ROS 2 bridge node (subscribe RGB-D, publish `/spatialmem/scene_graph`) |
+| D1 | ROS 2 bridge node (subscribe RGB-D, publish `/tempomem/scene_graph`) |
 | D2 | eMEM benchmark harness on a shared open-vocab dataset (reuses `bench`) |
 | D3 | Drop the alpha: cut `v0.1.0`, launch post, first external-integration writeup |
-| D4 | 3D web viewer (upgrade the 2D `spatialmem viz`) |
+| D4 | 3D web viewer (upgrade the 2D `tempomem viz`) |
 
 ## Sequencing
 

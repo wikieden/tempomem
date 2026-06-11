@@ -9,8 +9,8 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from spatialmem import SpatialMemory
-from spatialmem.datasets import (
+from tempomem import SpatialMemory
+from tempomem.datasets import (
     DatasetSource,
     HashEncoder,
     ReplicaAdapter,

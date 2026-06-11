@@ -60,7 +60,7 @@ def _ensure_schema(conn: sqlite3.Connection, embedding_dim: int) -> None:
     current = _applied_version(conn)
     if current == 0:
         with conn:
-            mod = import_module("spatialmem.persist.migrations.001_init")
+            mod = import_module("tempomem.persist.migrations.001_init")
             mod.up(conn)
             conn.executemany(
                 "INSERT INTO meta(key, value) VALUES(?, ?)",
@@ -73,7 +73,7 @@ def _ensure_schema(conn: sqlite3.Connection, embedding_dim: int) -> None:
         return
     if current > SCHEMA_VERSION:
         raise SchemaMismatchError(
-            f"store schema v{current} newer than library v{SCHEMA_VERSION}; upgrade spatialmem"
+            f"store schema v{current} newer than library v{SCHEMA_VERSION}; upgrade tempomem"
         )
     _check_dim(conn, embedding_dim)
 

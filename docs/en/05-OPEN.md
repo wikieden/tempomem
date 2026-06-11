@@ -55,7 +55,7 @@ Live design decisions not yet locked. Each has an owner-decision deadline (the m
 | 2026-05-29 | — | MVP is detections-in only, perception deferred to M2 | Win the API first; perception install pain must not gate "hello world" |
 | 2026-05-29 | — | Single `.smem` SQLite file as the unit | Portable, diffable, no external services |
 | 2026-05-29 | — | Repo private until runnable (M0/M1) | "private first" — avoid weak empty-repo first impression |
-| 2026-05-29 | B2 | Name "spatialmem" confirmed clear | PyPI free (`spatialmem`/`spatial-mem`/`spatialmemory` all 404); GitHub matches are unrelated (Julia `.jl` 1★, rest 0★ dormant) — no Python pkg or brand collision |
+| 2026-05-29 | B2 | Name "tempomem" confirmed clear | PyPI free (`tempomem`/`spatial-mem`/`tempomemory` all 404); GitHub matches are unrelated (Julia `.jl` 1★, rest 0★ dormant) — no Python pkg or brand collision |
 | 2026-05-29 | B4 | License = Apache-2.0 | Patent grant matters for a library cited by robotics/commercial stacks; eMEM's MIT is more permissive but offers no patent protection |
 | 2026-05-29 | P1 | ConceptGraphs backend: pin a commit + soft-fork into `extras/conceptgraphs/` (vendored), do NOT track upstream | Repo is research-paced with silent API breaks; components (Grounding DINO + SAM + OpenCLIP) are Apache/MIT, clean for our Apache-2.0 |
 | 2026-05-29 | P2 | Skip Hydra adapter | ROS dependency is the cost; NVIDIA's ROS stack (Isaac Perceptor) adds a proprietary license on top — makes it worse, not better |
