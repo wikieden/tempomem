@@ -6,11 +6,11 @@ import argparse
 import sys
 from pathlib import Path
 
-from . import SpatialMemory, __version__
+from . import TempoMem, __version__
 
 
 def _inspect(path: str, embedding_dim: int) -> int:
-    with SpatialMemory.open(path, embedding_dim=embedding_dim, create=False, readonly=True) as mem:
+    with TempoMem.open(path, embedding_dim=embedding_dim, create=False, readonly=True) as mem:
         st = mem.stats()
         print(f"store:      {path}")
         print(f"nodes:      {st.n_nodes}")
@@ -33,7 +33,7 @@ def _inspect(path: str, embedding_dim: int) -> int:
 def _viz(path: str, embedding_dim: int, out: str | None) -> int:
     from . import viz
 
-    with SpatialMemory.open(path, embedding_dim=embedding_dim, create=False, readonly=True) as mem:
+    with TempoMem.open(path, embedding_dim=embedding_dim, create=False, readonly=True) as mem:
         html = viz.to_html(mem._conn, embedding_dim, title=Path(path).name)
     if out:
         Path(out).write_text(html, encoding="utf-8")

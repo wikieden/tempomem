@@ -39,7 +39,7 @@
 |---|---|---|---|
 | P0 | `PerceptionAdapter` Protocol：`process_frame(rgb, depth, pose) -> list[Detection]` | 后端无关的接缝 | — |
 | P1 | 第一个具体适配器（A/B/C 决策赢家），固定 commit，打包为 extra | `add_frame` 可用 | P0 + 决策 |
-| P2 | `SpatialMemory.add_frame(rgb, depth, pose)` 通过适配器接入 → 融合 | RGB-D 摄入 | P1 |
+| P2 | `TempoMem.add_frame(rgb, depth, pose)` 通过适配器接入 → 融合 | RGB-D 摄入 | P1 |
 | P3 | 在后端自带的 demo 场景上对适配器进行基准测试；目标物体召回率与参考值偏差在 ±10% 以内 | 一致性证明 | P1, V5 |
 
 ## 超出范围（M3+）

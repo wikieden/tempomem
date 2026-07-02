@@ -13,7 +13,7 @@ from pathlib import Path
 
 import numpy as np
 
-from tempomem import Detection, SpatialMemory
+from tempomem import Detection, TempoMem
 
 DIM = 32
 DAY = 86400.0
@@ -67,7 +67,7 @@ def _det(enc: HashEncoder, label: str, center, ts: float) -> Detection:
 def main() -> None:
     enc = HashEncoder()
     path = Path(tempfile.mkdtemp()) / "kitchen.smem"
-    with SpatialMemory.open(
+    with TempoMem.open(
         path, embedding_dim=DIM, encoder=enc, verbalizer=EchoVerbalizer()
     ) as mem:
         mem.add_detections(

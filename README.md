@@ -14,10 +14,10 @@ Spatial memory layer for AI agents. Turn RGB-D / point clouds into a persistent,
 ## Quickstart
 
 ```python
-from tempomem import SpatialMemory, Detection
+from tempomem import TempoMem, Detection
 
 # Detections-in (BYO perception): supply label + 3D bbox + feature vector.
-mem = SpatialMemory.open("kitchen.smem", embedding_dim=512)
+mem = TempoMem.open("kitchen.smem", embedding_dim=512)
 mem.add_detections([
     Detection("mug", feat, center_xyz=(1.2, 0.3, 0.9),
               bbox_min=(1.15, 0.25, 0.85), bbox_max=(1.25, 0.35, 0.95)),
@@ -29,13 +29,13 @@ mem.spatial(near=(1.0, 0.0, 1.0), radius=2.0)      # spatial
 prompt = mem.serialize(format="prompt")            # graph -> compact LLM text
 
 # Natural-language semantic search + answer need an encoder/verbalizer:
-mem = SpatialMemory.open("kitchen.smem", embedding_dim=512,
+mem = TempoMem.open("kitchen.smem", embedding_dim=512,
                          encoder=my_clip, verbalizer=my_llm)
 mem.semantic("coffee mug")                         # cosine over node features
 mem.answer("where is the mug?")                    # retrieve -> prompt -> BYO LLM
 
 # Streaming RGB-D (needs a PerceptionAdapter; ConceptGraphs adapter is WIP):
-# mem = SpatialMemory.open(..., adapter=MyAdapter())
+# mem = TempoMem.open(..., adapter=MyAdapter())
 # mem.add_frame(rgb, depth, pose); mem.commit()
 ```
 

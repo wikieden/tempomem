@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from tempomem import QueryError, SpatialMemory
+from tempomem import QueryError, TempoMem
 from tempomem.bench import recall_at_k
 from tests.conftest import DIM, make_det
 
@@ -78,7 +78,7 @@ def test_answer_without_verbalizer_raises(mem) -> None:
 
 def test_answer_verbalizer_at_open(tmp_path) -> None:
     vb = StubVerbalizer()
-    with SpatialMemory.open(tmp_path / "v.smem", embedding_dim=DIM, verbalizer=vb) as mem:
+    with TempoMem.open(tmp_path / "v.smem", embedding_dim=DIM, verbalizer=vb) as mem:
         mem.add_detections([make_det("mug", (0, 0, 0), 1)])
         mem.commit()
         assert mem.answer("x?") == "the mug is on the counter"

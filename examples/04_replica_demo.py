@@ -31,7 +31,7 @@ from collections.abc import Iterator
 
 import numpy as np
 
-from tempomem import SpatialMemory
+from tempomem import TempoMem
 from tempomem.bench import recall_at_k
 from tempomem.datasets import HashEncoder, ReplicaAdapter, stream
 
@@ -85,7 +85,7 @@ def main() -> None:
             min_pixels=1,
         )
 
-    with SpatialMemory.open(args.out, embedding_dim=512, encoder=encoder) as mem:
+    with TempoMem.open(args.out, embedding_dim=512, encoder=encoder) as mem:
         n_frames, n_obs = stream(mem, adapter)
         report = recall_at_k(mem, [("mug", "mug"), ("table", "table"), ("chair", "chair")], k=5)
         print(f"streamed {n_frames} frames, {n_obs} observations -> {mem.stats().n_nodes} nodes")

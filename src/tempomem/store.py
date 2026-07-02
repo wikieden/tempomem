@@ -268,6 +268,9 @@ def delete_node(conn: sqlite3.Connection, node_id: int) -> None:
     )
     conn.execute("DELETE FROM node_obs WHERE node_id=?", (node_id,))
     conn.execute("DELETE FROM edges WHERE src=? OR dst=?", (node_id, node_id))
+    conn.execute("DELETE FROM semantic_edges WHERE src=? OR dst=?", (node_id, node_id))
+    conn.execute("DELETE FROM node_properties WHERE node_id=?", (node_id,))
+    conn.execute("UPDATE smem_events SET location=NULL WHERE location=?", (node_id,))
     conn.execute("DELETE FROM nodes WHERE id=?", (node_id,))
     _vec.delete(conn, node_id)
 
@@ -435,3 +438,106 @@ def stats(conn: sqlite3.Connection) -> StoreStats:
         n_episodes=count("episodes"),
         store_bytes=page_count * page_size,
     )
+
+
+# ---- semantic edges ----------------------------------------------------------
+
+
+def sem_edge_upsert(
+    conn: sqlite3.Connection, src: int, rel: str, dst: int, ts: float | None
+) -> None:
+    conn.execute(
+        "INSERT INTO semantic_edges(src, rel, dst, ts) VALUES(?,?,?,?)"
+        " ON CONFLICT(src, rel, dst) DO UPDATE SET ts=excluded.ts",
+        (src, rel, dst, ts),
+    )
+
+
+def sem_edges_from(
+    conn: sqlite3.Connection, src: int, rel: str | None = None
+) -> list[tuple[int, str]]:
+    """Outgoing typed semantic edges: (dst_id, rel)."""
+    if rel is None:
+        rows = conn.execute("SELECT dst, rel FROM semantic_edges WHERE src=?", (src,)).fetchall()
+    else:
+        rows = conn.execute(
+            "SELECT dst, rel FROM semantic_edges WHERE src=? AND rel=?", (src, rel)
+        ).fetchall()
+    return [(int(r["dst"]), r["rel"]) for r in rows]
+
+
+def sem_edges_to(
+    conn: sqlite3.Connection, dst: int, rel: str | None = None
+) -> list[tuple[int, str]]:
+    """Incoming typed semantic edges: (src_id, rel)."""
+    if rel is None:
+        rows = conn.execute("SELECT src, rel FROM semantic_edges WHERE dst=?", (dst,)).fetchall()
+    else:
+        rows = conn.execute(
+            "SELECT src, rel FROM semantic_edges WHERE dst=? AND rel=?", (dst, rel)
+        ).fetchall()
+    return [(int(r["src"]), r["rel"]) for r in rows]
+
+
+# ---- node properties ---------------------------------------------------------
+
+
+def prop_set(
+    conn: sqlite3.Connection, node_id: int, key: str, value_json: str, ts: float | None
+) -> None:
+    conn.execute(
+        "INSERT INTO node_properties(node_id, key, value, ts) VALUES(?,?,?,?)"
+        " ON CONFLICT(node_id, key) DO UPDATE SET value=excluded.value, ts=excluded.ts",
+        (node_id, key, value_json, ts),
+    )
+
+
+def prop_get(conn: sqlite3.Connection, node_id: int, key: str) -> str | None:
+    row = conn.execute(
+        "SELECT value FROM node_properties WHERE node_id=? AND key=?", (node_id, key)
+    ).fetchone()
+    return row["value"] if row else None
+
+
+def prop_all(conn: sqlite3.Connection, node_id: int) -> dict[str, str]:
+    """All properties of a node as raw JSON-encoded strings keyed by property key."""
+    rows = conn.execute(
+        "SELECT key, value FROM node_properties WHERE node_id=?", (node_id,)
+    ).fetchall()
+    return {r["key"]: r["value"] for r in rows}
+
+
+# ---- semantic event log ------------------------------------------------------
+
+
+def event_insert(
+    conn: sqlite3.Connection,
+    type_: str,
+    location: int | None,
+    ts: float,
+    payload_json: str | None,
+) -> int:
+    cur = conn.execute(
+        "INSERT INTO smem_events(type, location, ts, payload) VALUES(?,?,?,?)",
+        (type_, location, ts, payload_json),
+    )
+    assert cur.lastrowid is not None
+    return cur.lastrowid
+
+
+def events_query(
+    conn: sqlite3.Connection,
+    type_: str,
+    location: int | None = None,
+    since_ts: float | None = None,
+) -> list[sqlite3.Row]:
+    sql = "SELECT id, type, location, ts, payload FROM smem_events WHERE type=?"
+    params: list[object] = [type_]
+    if location is not None:
+        sql += " AND location=?"
+        params.append(location)
+    if since_ts is not None:
+        sql += " AND ts>=?"
+        params.append(since_ts)
+    sql += " ORDER BY ts"
+    return conn.execute(sql, params).fetchall()

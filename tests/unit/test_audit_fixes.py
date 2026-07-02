@@ -30,10 +30,10 @@ def test_relational_anchor_word_boundary(mem) -> None:
 
 
 def test_budget_drops_empty_parent_region(tmp_path) -> None:
-    from tempomem import HashEncoder, SpatialMemory
+    from tempomem import HashEncoder, TempoMem
 
     enc = HashEncoder(DIM)
-    with SpatialMemory.open(tmp_path / "b.smem", embedding_dim=DIM, encoder=enc) as mem:
+    with TempoMem.open(tmp_path / "b.smem", embedding_dim=DIM, encoder=enc) as mem:
         mem.add_detections([make_det("mug", (1.0, 0.0, 0.9), 1)])
         mem.commit()
         mem.define_region("kitchen", (0.0, -1.0, 0.0), (2.0, 1.0, 2.0))

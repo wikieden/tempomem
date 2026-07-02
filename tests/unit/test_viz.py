@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from tempomem import SpatialMemory, viz
+from tempomem import TempoMem, viz
 from tempomem.cli import main
 from tests.conftest import DIM, make_det
 
@@ -23,7 +23,7 @@ def test_to_html_empty_store(mem) -> None:
 
 def test_cli_viz_writes_file(tmp_path, capsys) -> None:
     p = tmp_path / "v.smem"
-    with SpatialMemory.open(p, embedding_dim=DIM) as m:
+    with TempoMem.open(p, embedding_dim=DIM) as m:
         m.add_detections([make_det("mug", (1, 0, 0), 1)])
         m.commit()
     out = tmp_path / "scene.html"

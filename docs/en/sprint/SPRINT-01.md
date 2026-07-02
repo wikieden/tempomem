@@ -16,7 +16,7 @@
 | F4 | `fusion.score` — geom + iou3d + sem(cos) + label_compat, weighted sum, all clipped [0,1] | match scorer | 35 min |
 | F5 | `fusion.ingest_observation` — candidate→score→argmax→decide(merge/new/reject) | real arbiter | 30 min |
 | F6 | `label_compat` — exact-match + (optional CLIP-text later) + antonym=0; M1 uses exact/substring, CLIP hook stubbed | label scoring | 20 min |
-| F7 | Wire `FusionConfig` through `SpatialMemory.open(config=...)` | configurable | 15 min |
+| F7 | Wire `FusionConfig` through `TempoMem.open(config=...)` | configurable | 15 min |
 | F8 | Tests: dedup (2 sightings→1 node), distinct objects stay separate, reject low-conf, determinism (same stream twice → identical node count + centroids) | green | 45 min |
 | F9 | Update quickstart + SPRINT-00 note; bump version 0.0.1→0.1.0a1 | demo shows dedup | 15 min |
 

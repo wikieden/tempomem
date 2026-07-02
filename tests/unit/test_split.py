@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from tempomem import ChronotopeConfig, FusionConfig, SpatialMemory
+from tempomem import ChronotopeConfig, FusionConfig, TempoMem
 from tests.conftest import DIM, make_det
 
 
@@ -19,7 +19,7 @@ def _merge_all_cfg() -> ChronotopeConfig:
 
 
 def test_resplit_separates_two_clusters(tmp_path) -> None:
-    with SpatialMemory.open(
+    with TempoMem.open(
         tmp_path / "sp.smem", embedding_dim=DIM, config=_merge_all_cfg()
     ) as mem:
         # same label+seed (identical feature) at two distant clusters

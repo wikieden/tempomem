@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from tempomem import SpatialMemory
+from tempomem import TempoMem
 from tempomem.bench import decay_forget, persistence_after_reopen, recall_at_k
 from tests.conftest import DIM, make_det
 
@@ -14,7 +14,7 @@ def _two_episode_kitchen(mem) -> None:
 
 
 def test_recall_at_k_baseline(tmp_path) -> None:
-    with SpatialMemory.open(tmp_path / "r.smem", embedding_dim=DIM) as mem:
+    with TempoMem.open(tmp_path / "r.smem", embedding_dim=DIM) as mem:
         _two_episode_kitchen(mem)
         rep = recall_at_k(mem, [("mug", "mug"), ("kettle", "kettle")], k=5)
     assert rep.recall == 1.0
@@ -23,7 +23,7 @@ def test_recall_at_k_baseline(tmp_path) -> None:
 
 def test_persistence_across_reopen_and_episodes(tmp_path) -> None:
     path = tmp_path / "p.smem"
-    with SpatialMemory.open(path, embedding_dim=DIM) as mem:
+    with TempoMem.open(path, embedding_dim=DIM) as mem:
         _two_episode_kitchen(mem)  # objects ingested under two episodes, then closed
     # reopen ("restart") and confirm both episodes' objects are still retrievable
     rep = persistence_after_reopen(
@@ -33,7 +33,7 @@ def test_persistence_across_reopen_and_episodes(tmp_path) -> None:
 
 
 def test_decay_forget_lifecycle(tmp_path) -> None:
-    with SpatialMemory.open(tmp_path / "d.smem", embedding_dim=DIM) as mem:
+    with TempoMem.open(tmp_path / "d.smem", embedding_dim=DIM) as mem:
         _two_episode_kitchen(mem)
         # age ~1 year with a 1-day half-life: confidence collapses below the floor
         far_future = 1000.0 + 86400.0 * 365
@@ -44,7 +44,7 @@ def test_decay_forget_lifecycle(tmp_path) -> None:
 
 
 def test_decay_forget_counts_real_removals(tmp_path) -> None:
-    with SpatialMemory.open(tmp_path / "f.smem", embedding_dim=DIM) as mem:
+    with TempoMem.open(tmp_path / "f.smem", embedding_dim=DIM) as mem:
         _two_episode_kitchen(mem)
         mug_id = mem.query("mug").nodes[0].id
         rep = decay_forget(mem, half_life_days=1e9, min_conf=0.0, forget_ids=[mug_id, 999999])

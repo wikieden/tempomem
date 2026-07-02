@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from tempomem import Detection, SpatialMemory
+from tempomem import Detection, TempoMem
 from tempomem.fusion import iou3d, label_compat
 from tests.conftest import DIM, make_det
 
@@ -41,7 +41,7 @@ def test_distinct_objects_stay_separate(mem) -> None:
 
 
 def test_reject_low_confidence(tmp_path) -> None:
-    m = SpatialMemory.open(tmp_path / "r.smem", embedding_dim=DIM)
+    m = TempoMem.open(tmp_path / "r.smem", embedding_dim=DIM)
     rng = np.random.default_rng(7)
     low = Detection(
         "ghost",
@@ -66,7 +66,7 @@ def test_determinism(tmp_path) -> None:
     ]
 
     def build(path) -> list[tuple]:
-        m = SpatialMemory.open(path, embedding_dim=DIM)
+        m = TempoMem.open(path, embedding_dim=DIM)
         for d in stream:
             m.add_detections([d])
         m.commit()

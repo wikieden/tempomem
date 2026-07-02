@@ -1,4 +1,4 @@
-"""LLM tool / function-call layer over SpatialMemory — contract C3.
+"""LLM tool / function-call layer over TempoMem — contract C3.
 
 Framework-agnostic. `ChronotopeTools(mem).schemas()` returns JSON tool specs in
 the OpenAI / Anthropic function-calling shape; `.call(name, arguments)`
@@ -29,7 +29,7 @@ from typing import TYPE_CHECKING, Any, overload
 from ._errors import ToolError
 
 if TYPE_CHECKING:
-    from . import SpatialMemory
+    from . import TempoMem
     from .query import NodeHit
 
 _K_MAX = 1000  # cap result counts so a stray huge k can't force unbounded work
@@ -190,9 +190,9 @@ _SCHEMAS: list[dict[str, Any]] = [
 
 
 class ChronotopeTools:
-    """Expose a `SpatialMemory` as LLM function-call tools (contract C3)."""
+    """Expose a `TempoMem` as LLM function-call tools (contract C3)."""
 
-    def __init__(self, mem: SpatialMemory) -> None:
+    def __init__(self, mem: TempoMem) -> None:
         self._mem = mem
 
     def schemas(self) -> list[dict[str, Any]]:

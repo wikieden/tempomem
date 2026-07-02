@@ -10,7 +10,7 @@ from pathlib import Path
 
 import numpy as np
 
-from tempomem import Detection, SpatialMemory
+from tempomem import Detection, TempoMem
 
 DIM = 32  # tiny synthetic feature dim for the demo
 
@@ -48,7 +48,7 @@ def synthetic_kitchen() -> list[Detection]:
 
 def main() -> None:
     path = Path(tempfile.mkdtemp()) / "kitchen.smem"
-    with SpatialMemory.open(path, embedding_dim=DIM) as mem:
+    with TempoMem.open(path, embedding_dim=DIM) as mem:
         ids = mem.add_detections(synthetic_kitchen())
         stats = mem.commit()
         print(

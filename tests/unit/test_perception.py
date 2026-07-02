@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from tempomem import Detection, IngestError, PerceptionAdapter, SpatialMemory
+from tempomem import Detection, IngestError, PerceptionAdapter, TempoMem
 from tests.conftest import DIM
 
 
@@ -39,7 +39,7 @@ def test_stub_adapter_satisfies_protocol() -> None:
 
 
 def test_add_frame_ingests_detections(tmp_path) -> None:
-    with SpatialMemory.open(tmp_path / "f.smem", embedding_dim=DIM, adapter=StubAdapter()) as mem:
+    with TempoMem.open(tmp_path / "f.smem", embedding_dim=DIM, adapter=StubAdapter()) as mem:
         rgb, depth, pose = _frame(10.0)
         ids = mem.add_frame(rgb, depth, pose)
         assert len(ids) == 2
@@ -49,7 +49,7 @@ def test_add_frame_ingests_detections(tmp_path) -> None:
 
 
 def test_add_frame_adapter_per_call(tmp_path) -> None:
-    with SpatialMemory.open(tmp_path / "f2.smem", embedding_dim=DIM) as mem:
+    with TempoMem.open(tmp_path / "f2.smem", embedding_dim=DIM) as mem:
         rgb, depth, pose = _frame(0.0)
         mem.add_frame(rgb, depth, pose, adapter=StubAdapter())
         mem.commit()
@@ -57,7 +57,7 @@ def test_add_frame_adapter_per_call(tmp_path) -> None:
 
 
 def test_add_frame_without_adapter_raises(tmp_path) -> None:
-    with SpatialMemory.open(tmp_path / "f3.smem", embedding_dim=DIM) as mem:
+    with TempoMem.open(tmp_path / "f3.smem", embedding_dim=DIM) as mem:
         rgb, depth, pose = _frame(0.0)
         with pytest.raises(IngestError):
             mem.add_frame(rgb, depth, pose)

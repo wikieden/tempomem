@@ -15,7 +15,7 @@ import tempfile
 
 import numpy as np
 
-from tempomem import ChronotopeTools, Detection, SpatialMemory
+from tempomem import ChronotopeTools, Detection, TempoMem
 
 DIM = 16
 
@@ -36,7 +36,7 @@ def _det(label: str, center: tuple[float, float, float], seed: int) -> Detection
 
 def main() -> None:
     tmp = pathlib.Path(tempfile.mkdtemp()) / "demo.smem"
-    with SpatialMemory.open(tmp, embedding_dim=DIM) as mem:
+    with TempoMem.open(tmp, embedding_dim=DIM) as mem:
         mem.add_detections(
             [
                 _det("mug", (1.0, 0.0, 0.9), 1),

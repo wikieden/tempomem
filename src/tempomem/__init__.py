@@ -7,6 +7,7 @@ split, the `PerceptionAdapter` seam (`add_frame`), and dataset streaming.
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import sqlite3
@@ -68,10 +69,10 @@ __all__ = [
     "QueryError",
     "QueryResult",
     "SchemaMismatchError",
-    "SpatialMemory",
     "StoreError",
     "StoreStats",
     "SyntheticScene",
+    "TempoMem",
     "ToolError",
     "Verbalizer",
     "__version__",
@@ -117,7 +118,7 @@ def _unit_feature(dim: int) -> np.ndarray:
     return v
 
 
-class SpatialMemory:
+class TempoMem:
     """A persistent spatial scene-graph memory backed by a single .smem file."""
 
     def __init__(
@@ -157,7 +158,7 @@ class SpatialMemory:
         encoder: Encoder | None = None,
         verbalizer: Verbalizer | None = None,
         adapter: PerceptionAdapter | None = None,
-    ) -> SpatialMemory:
+    ) -> TempoMem:
         conn = persist.connect(path, embedding_dim=embedding_dim, readonly=readonly, create=create)
         return cls(conn, embedding_dim, readonly, config, encoder, verbalizer, adapter)
 
@@ -167,7 +168,7 @@ class SpatialMemory:
             self._conn.commit()
             self._conn.close()
 
-    def __enter__(self) -> SpatialMemory:
+    def __enter__(self) -> TempoMem:
         return self
 
     def __exit__(self, *_a: object) -> None:
@@ -641,7 +642,7 @@ class SpatialMemory:
         """
         if self._readonly:
             raise StoreError("store opened read-only")
-        src = SpatialMemory.open(other, embedding_dim=self._dim, create=False, readonly=True)
+        src = TempoMem.open(other, embedding_dim=self._dim, create=False, readonly=True)
         try:
             dets: list[Detection] = []
             for n in store.all_nodes(src._conn):
@@ -706,3 +707,169 @@ class SpatialMemory:
 
     def stats(self) -> StoreStats:
         return store.stats(self._conn)
+
+    # ---- semantic edges --------------------------------------------------
+
+    def _resolve_nid(self, label: str) -> int | None:
+        row = self._conn.execute(
+            "SELECT id FROM nodes WHERE label=? ORDER BY id LIMIT 1", (label,)
+        ).fetchone()
+        return int(row["id"]) if row else None
+
+    def add_edge(
+        self, src: int | str, rel: str, dst: int | str, *, ts: float | None = None
+    ) -> None:
+        """Write a typed directed edge src --rel--> dst in the semantic graph.
+
+        Idempotent on (src, rel, dst); call again to update ts. Both ends can
+        be a node id (int) or a node label (str, first match by label).
+        """
+        if self._readonly:
+            raise StoreError("store opened read-only")
+        self._flush_pending()
+        src_id = self._resolve_nid(src) if isinstance(src, str) else src
+        dst_id = self._resolve_nid(dst) if isinstance(dst, str) else dst
+        if src_id is None:
+            raise StoreError(f"node not found: {src!r}")
+        if dst_id is None:
+            raise StoreError(f"node not found: {dst!r}")
+        store.sem_edge_upsert(self._conn, src_id, rel, dst_id, ts)
+        self._conn.commit()
+
+    def get_edges(
+        self,
+        node: int | str,
+        *,
+        rel: str | None = None,
+        direction: str = "out",
+    ) -> list[tuple[NodeHit, str]]:
+        """Typed semantic edges of a node, as (neighbor, rel_type) pairs.
+
+        `direction="out"` (default): edges where node is source.
+        `direction="in"`: edges where node is destination.
+        `rel` filters to one relation type when given.
+        """
+        nid = self._resolve_nid(node) if isinstance(node, str) else node
+        if nid is None:
+            return []
+        if direction == "in":
+            pairs = store.sem_edges_to(self._conn, nid, rel)
+        else:
+            pairs = store.sem_edges_from(self._conn, nid, rel)
+        out: list[tuple[NodeHit, str]] = []
+        for other_id, r in pairs:
+            n = store.get_node(self._conn, other_id)
+            if n is not None:
+                out.append((_node_hit(n), r))
+        return out
+
+    # ---- node properties -------------------------------------------------
+
+    def set_property(
+        self, node: int | str, key: str, value: object, *, ts: float | None = None
+    ) -> None:
+        """Write a property on a node. Overwrites previous value for the same key.
+
+        `value` is any JSON-serialisable Python object.
+        """
+        if self._readonly:
+            raise StoreError("store opened read-only")
+        self._flush_pending()
+        nid = self._resolve_nid(node) if isinstance(node, str) else node
+        if nid is None:
+            raise StoreError(f"node not found: {node!r}")
+        store.prop_set(self._conn, nid, key, json.dumps(value), ts)
+        self._conn.commit()
+
+    def get_property(self, node: int | str, key: str) -> object | None:
+        """Read current value of a property, or None if unset."""
+        nid = self._resolve_nid(node) if isinstance(node, str) else node
+        if nid is None:
+            return None
+        raw = store.prop_get(self._conn, nid, key)
+        return json.loads(raw) if raw is not None else None
+
+    # ---- semantic event timeline -----------------------------------------
+
+    def add_event(
+        self,
+        type: str,
+        *,
+        location: int | str | None = None,
+        ts: float,
+        payload: dict | None = None,
+    ) -> int:
+        """Append a semantic event to the timeline. Returns the event id.
+
+        `location` pins the event to a node (id or label). `payload` is any
+        JSON-serialisable dict carrying event-specific data.
+        """
+        if self._readonly:
+            raise StoreError("store opened read-only")
+        self._flush_pending()
+        loc_id: int | None = None
+        if location is not None:
+            loc_id = self._resolve_nid(location) if isinstance(location, str) else location
+            if loc_id is None:
+                raise StoreError(f"location node not found: {location!r}")
+        eid = store.event_insert(
+            self._conn, type, loc_id, ts, json.dumps(payload) if payload else None
+        )
+        self._conn.commit()
+        return eid
+
+    def query_events(
+        self,
+        type: str,
+        *,
+        region: int | str | None = None,
+        since_ts: float | None = None,
+    ) -> list[dict]:
+        """Return semantic events of a given type, ordered by ts ascending.
+
+        `region` filters to events whose location is that node.
+        `since_ts` excludes events before that timestamp.
+        """
+        loc_id: int | None = None
+        if region is not None:
+            loc_id = self._resolve_nid(region) if isinstance(region, str) else region
+            if loc_id is None:
+                return []
+        rows = store.events_query(self._conn, type, loc_id, since_ts)
+        return [
+            {
+                "id": int(r["id"]),
+                "type": r["type"],
+                "location": int(r["location"]) if r["location"] is not None else None,
+                "ts": float(r["ts"]),
+                "payload": json.loads(r["payload"]) if r["payload"] else None,
+            }
+            for r in rows
+        ]
+
+    def last_changed(self, region: int | str) -> tuple[float | None, str | None]:
+        """When was this region last modified? Returns (timestamp, change_type).
+
+        Checks both direct node updates (children of the region) and smem_events
+        pinned to the location. Returns (None, None) if no activity found.
+        """
+        rid = self._resolve_nid(region) if isinstance(region, str) else region
+        if rid is None:
+            return None, None
+        row = self._conn.execute(
+            "SELECT MAX(t_last) AS t FROM nodes WHERE parent_id=?", (rid,)
+        ).fetchone()
+        node_t: float | None = float(row["t"]) if row and row["t"] is not None else None
+
+        row2 = self._conn.execute(
+            "SELECT ts, type FROM smem_events WHERE location=? ORDER BY ts DESC LIMIT 1",
+            (rid,),
+        ).fetchone()
+        event_t: float | None = float(row2["ts"]) if row2 else None
+        event_type: str | None = row2["type"] if row2 else None
+
+        if node_t is None and event_t is None:
+            return None, None
+        if node_t is not None and (event_t is None or node_t >= event_t):
+            return node_t, "node_update"
+        return event_t, event_type

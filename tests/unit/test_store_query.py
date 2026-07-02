@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from tempomem import SchemaMismatchError, SpatialMemory
+from tempomem import SchemaMismatchError, TempoMem
 from tests.conftest import DIM, make_det
 
 
@@ -56,7 +56,8 @@ def test_serialize_json_roundtrips_counts(mem) -> None:
     mem.add_detections([make_det("mug", (1, 0, 0), 1)])
     mem.commit()
     data = json.loads(mem.serialize(format="json"))
-    assert data["schema_version"] == 1
+    from tempomem.persist import SCHEMA_VERSION
+    assert data["schema_version"] == SCHEMA_VERSION
     assert data["embedding_dim"] == DIM
     assert len(data["nodes"]) == 1
     assert data["nodes"][0]["label"] == "mug"
@@ -72,17 +73,17 @@ def test_serialize_prompt(mem) -> None:
 
 def test_persistence_across_reopen(tmp_path) -> None:
     p = tmp_path / "persist.smem"
-    with SpatialMemory.open(p, embedding_dim=DIM) as m:
+    with TempoMem.open(p, embedding_dim=DIM) as m:
         m.add_detections([make_det("mug", (1, 0, 0), 1)])
         m.commit()
-    with SpatialMemory.open(p, embedding_dim=DIM) as m2:
+    with TempoMem.open(p, embedding_dim=DIM) as m2:
         assert m2.stats().n_nodes == 1
 
 
 def test_dim_mismatch_on_reopen(tmp_path) -> None:
     p = tmp_path / "dim.smem"
-    with SpatialMemory.open(p, embedding_dim=DIM) as m:
+    with TempoMem.open(p, embedding_dim=DIM) as m:
         m.add_detections([make_det("mug", (1, 0, 0), 1)])
         m.commit()
     with pytest.raises(SchemaMismatchError):
-        SpatialMemory.open(p, embedding_dim=DIM + 1)
+        TempoMem.open(p, embedding_dim=DIM + 1)

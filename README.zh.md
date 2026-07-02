@@ -14,10 +14,10 @@ AI agent 的空间记忆层。只需一次 pip 安装，即可将 RGB-D / 点云
 ## 快速入门
 
 ```python
-from tempomem import SpatialMemory, Detection
+from tempomem import TempoMem, Detection
 
 # 输入检测结果（自带感知模块）：提供标签 + 3D 包围盒 + 特征向量。
-mem = SpatialMemory.open("kitchen.smem", embedding_dim=512)
+mem = TempoMem.open("kitchen.smem", embedding_dim=512)
 mem.add_detections([
     Detection("mug", feat, center_xyz=(1.2, 0.3, 0.9),
               bbox_min=(1.15, 0.25, 0.85), bbox_max=(1.25, 0.35, 0.95)),
@@ -29,13 +29,13 @@ mem.spatial(near=(1.0, 0.0, 1.0), radius=2.0)      # 空间查询
 prompt = mem.serialize(format="prompt")            # 图 -> 紧凑 LLM 文本
 
 # 自然语言语义搜索与问答需要 encoder/verbalizer：
-mem = SpatialMemory.open("kitchen.smem", embedding_dim=512,
+mem = TempoMem.open("kitchen.smem", embedding_dim=512,
                          encoder=my_clip, verbalizer=my_llm)
 mem.semantic("coffee mug")                         # 基于节点特征的余弦相似度检索
 mem.answer("where is the mug?")                    # 检索 -> 提示词 -> 自带 LLM
 
 # 流式 RGB-D（需要 PerceptionAdapter；ConceptGraphs adapter 开发中）：
-# mem = SpatialMemory.open(..., adapter=MyAdapter())
+# mem = TempoMem.open(..., adapter=MyAdapter())
 # mem.add_frame(rgb, depth, pose); mem.commit()
 ```
 

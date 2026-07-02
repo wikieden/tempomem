@@ -3,7 +3,7 @@
 Chronotope is BYO-encoder: features on `Detection` come from the user's
 perception model; to run a natural-language `query("red mug")` the same
 embedding space must be reachable for the query string. Supply any object
-implementing the `Encoder` protocol to `SpatialMemory.open(encoder=...)`.
+implementing the `Encoder` protocol to `TempoMem.open(encoder=...)`.
 
 `OpenClipEncoder` is an optional reference implementation behind the `[clip]`
 extra. The core package depends on numpy only.

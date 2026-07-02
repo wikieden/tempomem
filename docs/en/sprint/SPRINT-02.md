@@ -39,7 +39,7 @@ NVIDIA open-model research done (see [05-OPEN.md](../05-OPEN.md) P1/P3 log). Ver
 |---|---|---|---|
 | P0 | `PerceptionAdapter` Protocol: `process_frame(rgb, depth, pose) -> list[Detection]` | backend-agnostic seam | — |
 | P1 | First concrete adapter (A/B/C winner), pinned commit, packaged extra | `add_frame` works | P0 + decision |
-| P2 | `SpatialMemory.add_frame(rgb, depth, pose)` wired through adapter → fusion | RGB-D ingest | P1 |
+| P2 | `TempoMem.add_frame(rgb, depth, pose)` wired through adapter → fusion | RGB-D ingest | P1 |
 | P3 | Bench adapter on backend's own demo scenes; object recall within ±10% of reference | parity proof | P1, V5 |
 
 ## Out of scope (M3+)

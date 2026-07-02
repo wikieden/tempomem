@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from tempomem import HashEncoder, SpatialMemory
+from tempomem import HashEncoder, TempoMem
 from tests.conftest import DIM, make_det
 
 
@@ -44,7 +44,7 @@ def test_region_does_not_swallow_observations(mem) -> None:
 
 def test_region_queryable_with_encoder(tmp_path) -> None:
     enc = HashEncoder(DIM)
-    with SpatialMemory.open(tmp_path / "h.smem", embedding_dim=DIM, encoder=enc) as mem:
+    with TempoMem.open(tmp_path / "h.smem", embedding_dim=DIM, encoder=enc) as mem:
         mem.add_detections([make_det("mug", (1.0, 0.0, 0.9), 1)])
         mem.commit()
         mem.define_region("kitchen", (0.0, -1.0, 0.0), (2.0, 1.0, 2.0))

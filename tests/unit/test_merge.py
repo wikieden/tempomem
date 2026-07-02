@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import pytest
 
-from tempomem import SchemaMismatchError, SpatialMemory, StoreError
+from tempomem import SchemaMismatchError, StoreError, TempoMem
 from tests.conftest import DIM, make_det
 
 
-def _store(tmp_path, name: str, dim: int = DIM) -> SpatialMemory:
-    return SpatialMemory.open(tmp_path / name, embedding_dim=dim)
+def _store(tmp_path, name: str, dim: int = DIM) -> TempoMem:
+    return TempoMem.open(tmp_path / name, embedding_dim=dim)
 
 
 def test_merge_dedups_shared_object_and_adds_new(tmp_path) -> None:
@@ -32,7 +32,7 @@ def test_merge_dim_mismatch(tmp_path) -> None:
     a = _store(tmp_path, "a.smem")
     a.add_detections([make_det("mug", (1.0, 0.0, 0.9), 1)])
     a.commit()
-    b = SpatialMemory.open(tmp_path / "b.smem", embedding_dim=DIM + 1)
+    b = TempoMem.open(tmp_path / "b.smem", embedding_dim=DIM + 1)
     b.close()
     with pytest.raises(SchemaMismatchError):
         a.merge(tmp_path / "b.smem")
@@ -44,7 +44,7 @@ def test_merge_readonly_rejected(tmp_path) -> None:
     a.add_detections([make_det("mug", (1.0, 0.0, 0.9), 1)])
     a.commit()
     a.close()
-    ro = SpatialMemory.open(tmp_path / "a.smem", embedding_dim=DIM, readonly=True)
+    ro = TempoMem.open(tmp_path / "a.smem", embedding_dim=DIM, readonly=True)
     with pytest.raises(StoreError):
         ro.merge(tmp_path / "a.smem")
     ro.close()

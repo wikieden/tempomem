@@ -13,7 +13,7 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
-from tempomem import HashEncoder, SpatialMemory, SyntheticScene, stream
+from tempomem import HashEncoder, SyntheticScene, TempoMem, stream
 
 DIM = 64
 
@@ -41,7 +41,7 @@ def main() -> None:
     scene = SyntheticScene(objects=list(OBJECTS), encoder=enc, n_frames=15)
     path = Path(tempfile.mkdtemp()) / "kitchen.smem"
 
-    with SpatialMemory.open(
+    with TempoMem.open(
         path, embedding_dim=DIM, encoder=enc, verbalizer=EchoVerbalizer()
     ) as mem:
         n_frames, n_obs = stream(mem, scene, commit_every=5)

@@ -14,7 +14,7 @@
 | T2 | 包骨架 `src/tempomem/__init__.py`，含 `__all__` + version | `import tempomem` 可用 | T1 | 10 min |
 | T3 | `frame.py` — `Detection`、`Observation` 冻结 dataclass + JSON 往返 | 有类型的值对象 | T2 | 30 min |
 | T4 | `persist/schema.sql` + `persist/migrations/001_init.py` — [SCHEMA.md](../../../spec/SCHEMA.md) 中的所有表 | 空 store 可创建 | T2 | 40 min |
-| T5 | `persist/__init__.py` — 打开/创建、sqlite-vec + rtree 加载、迁移运行器、WAL | `SpatialMemory.open()` 返回活跃 store | T4 | 40 min |
+| T5 | `persist/__init__.py` — 打开/创建、sqlite-vec + rtree 加载、迁移运行器、WAL | `TempoMem.open()` 返回活跃 store | T4 | 40 min |
 | T6 | `store.py` — Node/Edge/Episode CRUD + `stats()` | 读写图行 | T5, T3 | 50 min |
 | T7 | 融合**桩** — 每条观测 = 新节点（尚无合并逻辑） | 观测落地为节点 | T6 | 20 min |
 | T8 | `query.py` 最小实现 — `recent()` + `spatial()`（R-tree），暂无语义 | 节点可检索 | T6 | 30 min |

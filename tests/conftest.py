@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from tempomem import Detection, SpatialMemory
+from tempomem import Detection, TempoMem
 
 DIM = 16
 
@@ -29,6 +29,6 @@ def make_det(label: str, center, seed: int, ts: float = 1000.0) -> Detection:
 
 @pytest.fixture
 def mem(tmp_path):
-    m = SpatialMemory.open(tmp_path / "t.smem", embedding_dim=DIM)
+    m = TempoMem.open(tmp_path / "t.smem", embedding_dim=DIM)
     yield m
     m.close()

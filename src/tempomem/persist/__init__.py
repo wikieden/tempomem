@@ -12,8 +12,11 @@ from pathlib import Path
 
 from .._errors import SchemaMismatchError, StoreError
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 CREATOR_VERSION = "0.1.0a1"
+
+# Ordered list of migration module names; index 0 → v1, index N → v(N+1).
+_MIGRATIONS = ["001_init", "002_semantic"]
 
 
 def connect(
@@ -58,10 +61,20 @@ def _applied_version(conn: sqlite3.Connection) -> int:
 
 def _ensure_schema(conn: sqlite3.Connection, embedding_dim: int) -> None:
     current = _applied_version(conn)
+    if current > SCHEMA_VERSION:
+        raise SchemaMismatchError(
+            f"store schema v{current} newer than library v{SCHEMA_VERSION}; upgrade tempomem"
+        )
+    if current == SCHEMA_VERSION:
+        _check_dim(conn, embedding_dim)
+        return
+
     if current == 0:
+        # New store: apply all migrations then write meta in one transaction.
         with conn:
-            mod = import_module("tempomem.persist.migrations.001_init")
-            mod.up(conn)
+            for name in _MIGRATIONS:
+                mod = import_module(f"tempomem.persist.migrations.{name}")
+                mod.up(conn)
             conn.executemany(
                 "INSERT INTO meta(key, value) VALUES(?, ?)",
                 [
@@ -71,11 +84,16 @@ def _ensure_schema(conn: sqlite3.Connection, embedding_dim: int) -> None:
                 ],
             )
         return
-    if current > SCHEMA_VERSION:
-        raise SchemaMismatchError(
-            f"store schema v{current} newer than library v{SCHEMA_VERSION}; upgrade tempomem"
-        )
+
+    # Existing store at v(current): apply only the missing migrations.
     _check_dim(conn, embedding_dim)
+    for target_version, name in enumerate(_MIGRATIONS[current:], start=current + 1):
+        with conn:
+            mod = import_module(f"tempomem.persist.migrations.{name}")
+            mod.up(conn)
+            conn.execute(
+                "UPDATE meta SET value=? WHERE key='schema_version'", (str(target_version),)
+            )
 
 
 def _check_dim(conn: sqlite3.Connection, embedding_dim: int) -> None:

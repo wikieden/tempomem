@@ -9,7 +9,7 @@ import pytest
 
 pytest.importorskip("sqlite_vec")
 
-from tempomem import Detection, SpatialMemory
+from tempomem import Detection, TempoMem
 from tempomem import vec as _vec
 
 DIM = 16
@@ -47,7 +47,7 @@ def _det(enc: StubEncoder, label: str, center) -> Detection:
 
 
 def _open(tmp_path, enc):
-    return SpatialMemory.open(tmp_path / "v.smem", embedding_dim=DIM, encoder=enc)
+    return TempoMem.open(tmp_path / "v.smem", embedding_dim=DIM, encoder=enc)
 
 
 def test_index_active_and_populated(tmp_path) -> None:

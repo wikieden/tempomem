@@ -16,7 +16,7 @@
 | F4 | `fusion.score` — geom + iou3d + sem(cos) + label_compat，加权求和，全部截断至 [0,1] | 匹配评分器 | 35 min |
 | F5 | `fusion.ingest_observation` — candidate→score→argmax→decide(merge/new/reject) | 真实仲裁器 | 30 min |
 | F6 | `label_compat` — 精确匹配 + （后续可选 CLIP-text）+ 反义词=0；M1 使用精确/子串匹配，CLIP 钩子留存占位 | 标签评分 | 20 min |
-| F7 | 通过 `SpatialMemory.open(config=...)` 将 `FusionConfig` 接入主接口 | 可配置化 | 15 min |
+| F7 | 通过 `TempoMem.open(config=...)` 将 `FusionConfig` 接入主接口 | 可配置化 | 15 min |
 | F8 | 测试：去重（2 次观测→1 个节点）、不同物体保持独立、拒绝低置信度、确定性（相同流输入两次 → 节点数与质心完全相同） | 绿色通过 | 45 min |
 | F9 | 更新 quickstart + SPRINT-00 说明；版本号 0.0.1→0.1.0a1 | demo 展示去重效果 | 15 min |
 

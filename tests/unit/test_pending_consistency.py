@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import sqlite3
 
-from tempomem import SpatialMemory
+from tempomem import TempoMem
 from tests.conftest import DIM, make_det
 
 
@@ -56,7 +56,7 @@ def test_no_committed_orphans_on_disk_after_interleaved_maintenance(tmp_path) ->
     # committed-to-disk state. After an interleaved maintenance commit there must
     # be no observation persisted without a node link.
     path = tmp_path / "tick.smem"
-    m = SpatialMemory.open(path, embedding_dim=DIM)
+    m = TempoMem.open(path, embedding_dim=DIM)
     try:
         m.add_detections([make_det("mug", (1.0, 0.0, 0.9), 1)])
         m.consolidate()  # stray maintenance commit between add and commit
@@ -74,7 +74,7 @@ def test_close_fuses_pending_no_orphans(tmp_path) -> None:
     # close() commits unconditionally too — forgetting commit() before close must
     # not persist orphan observations.
     path = tmp_path / "tick2.smem"
-    with SpatialMemory.open(path, embedding_dim=DIM) as m:
+    with TempoMem.open(path, embedding_dim=DIM) as m:
         m.add_detections([make_det("mug", (1.0, 0.0, 0.9), 1)])
         # no explicit commit; __exit__ → close() must fuse first
     reader = sqlite3.connect(f"file:{path}?mode=ro", uri=True)

@@ -19,7 +19,7 @@ import numpy as np
 from ..frame import Detection
 
 if TYPE_CHECKING:
-    from .. import SpatialMemory
+    from .. import TempoMem
 
 Vec3 = tuple[float, float, float]
 
@@ -98,7 +98,7 @@ class SyntheticScene:
 
 
 def stream(
-    mem: SpatialMemory,
+    mem: TempoMem,
     source: DatasetSource,
     *,
     commit_every: int = 1,

@@ -16,7 +16,7 @@ import logging
 
 import pytest
 
-from tempomem import ChronotopeConfig, SpatialMemory
+from tempomem import ChronotopeConfig, TempoMem
 from tests.conftest import DIM, make_det
 
 # ---------------------------------------------------------------------------
@@ -24,7 +24,7 @@ from tests.conftest import DIM, make_det
 # ---------------------------------------------------------------------------
 
 
-def _orphan_count(mem: SpatialMemory) -> int:
+def _orphan_count(mem: TempoMem) -> int:
     return int(
         mem._conn.execute(
             "SELECT COUNT(*) AS c FROM observations o "
@@ -41,7 +41,7 @@ def _orphan_count(mem: SpatialMemory) -> int:
 def test_auto_flush_triggers_at_threshold(tmp_path) -> None:
     """_pending is drained once its length hits max_pending_obs."""
     cfg = ChronotopeConfig(max_pending_obs=3)
-    with SpatialMemory.open(tmp_path / "ap.smem", embedding_dim=DIM, config=cfg) as mem:
+    with TempoMem.open(tmp_path / "ap.smem", embedding_dim=DIM, config=cfg) as mem:
         # add 2 detections — below threshold, _pending should still hold them
         mem.add_detections([make_det("mug", (1.0, 0.0, 0.9), 1)])
         mem.add_detections([make_det("sink", (5.0, 0.0, 0.0), 2)])
@@ -59,7 +59,7 @@ def test_auto_flush_emits_warning(tmp_path, caplog) -> None:
     cfg = ChronotopeConfig(max_pending_obs=2)
     with (
         caplog.at_level(logging.WARNING, logger="tempomem.memory"),
-        SpatialMemory.open(tmp_path / "warn.smem", embedding_dim=DIM, config=cfg) as mem,
+        TempoMem.open(tmp_path / "warn.smem", embedding_dim=DIM, config=cfg) as mem,
     ):
         mem.add_detections([make_det("mug", (1.0, 0.0, 0.9), 1)])
         assert len(caplog.records) == 0  # not yet at threshold
@@ -75,7 +75,7 @@ def test_auto_flush_emits_warning(tmp_path, caplog) -> None:
 
 def test_no_auto_flush_when_limit_is_none(tmp_path) -> None:
     """Default config (max_pending_obs=None) never auto-flushes."""
-    with SpatialMemory.open(tmp_path / "no_af.smem", embedding_dim=DIM) as mem:
+    with TempoMem.open(tmp_path / "no_af.smem", embedding_dim=DIM) as mem:
         for i in range(10):
             mem.add_detections([make_det(f"obj{i}", (float(i), 0.0, 0.9), i + 1)])
         # all 10 still pending — no auto-flush
@@ -87,7 +87,7 @@ def test_no_auto_flush_when_limit_is_none(tmp_path) -> None:
 def test_auto_flush_batch_add_detections(tmp_path) -> None:
     """Threshold applies to cumulative _pending length, not per-call batch size."""
     cfg = ChronotopeConfig(max_pending_obs=3)
-    with SpatialMemory.open(tmp_path / "batch.smem", embedding_dim=DIM, config=cfg) as mem:
+    with TempoMem.open(tmp_path / "batch.smem", embedding_dim=DIM, config=cfg) as mem:
         # single call with a batch of 5 — exceeds threshold, must auto-flush
         mem.add_detections(
             [
@@ -106,7 +106,7 @@ def test_auto_flush_batch_add_detections(tmp_path) -> None:
 def test_explicit_commit_after_auto_flush_is_noop(tmp_path) -> None:
     """An explicit commit() after an auto-flush commits 0 observations."""
     cfg = ChronotopeConfig(max_pending_obs=2)
-    with SpatialMemory.open(tmp_path / "noop.smem", embedding_dim=DIM, config=cfg) as mem:
+    with TempoMem.open(tmp_path / "noop.smem", embedding_dim=DIM, config=cfg) as mem:
         mem.add_detections([make_det("mug", (1.0, 0.0, 0.9), 1)])
         mem.add_detections([make_det("sink", (5.0, 0.0, 0.0), 2)])
         # auto-flush has already fired; explicit commit should be a no-op
@@ -125,7 +125,7 @@ def test_max_pending_obs_below_one_rejected() -> None:
 def test_auto_flush_rearms_after_each_threshold(tmp_path) -> None:
     """Crossing the threshold a second time flushes again (the guard re-arms)."""
     cfg = ChronotopeConfig(max_pending_obs=2)
-    with SpatialMemory.open(tmp_path / "rearm.smem", embedding_dim=DIM, config=cfg) as mem:
+    with TempoMem.open(tmp_path / "rearm.smem", embedding_dim=DIM, config=cfg) as mem:
         mem.add_detections([make_det("a", (1.0, 0.0, 0.9), 1)])
         mem.add_detections([make_det("b", (2.0, 0.0, 0.9), 2)])  # flush #1
         assert len(mem._pending) == 0
@@ -140,7 +140,7 @@ def test_auto_flush_rearms_after_each_threshold(tmp_path) -> None:
 def test_auto_flush_preserves_distinct_episodes(tmp_path) -> None:
     """Observations staged under different episode= survive the flush with their binding."""
     cfg = ChronotopeConfig(max_pending_obs=2)
-    with SpatialMemory.open(tmp_path / "ep.smem", embedding_dim=DIM, config=cfg) as mem:
+    with TempoMem.open(tmp_path / "ep.smem", embedding_dim=DIM, config=cfg) as mem:
         mem.add_detections([make_det("mug", (1.0, 0.0, 0.9), 1)], episode="a")
         mem.add_detections([make_det("sink", (5.0, 0.0, 0.0), 2)], episode="b")  # flush
         assert len(mem._pending) == 0

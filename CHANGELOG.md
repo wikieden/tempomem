@@ -11,7 +11,7 @@ All notable changes to Chronotope are documented here. Format follows
   Chronotope). Import path, CLI entry point, logger namespace, and the
   `SpatialMemConfig`/`SpatialMemError`/`SpatialMemTools` classes (now
   `ChronotopeConfig`/`ChronotopeError`/`ChronotopeTools`) all follow. The
-  `SpatialMemory` class, `.smem` format, and on-disk schema are unchanged.
+  `TempoMem` class, `.smem` format, and on-disk schema are unchanged.
   Companion packages renamed: `spatialmem-perception` → `worldsense`,
   `spatialmem-brain` → `mindloop`. Nothing was published under the old names.
 
@@ -40,7 +40,7 @@ All notable changes to Chronotope are documented here. Format follows
   the floor. Memory hygiene for long-lived stores.
 - **`answer(query, verbalizer=...)`** — retrieve → serialize scene prompt →
   BYO LLM. `Verbalizer` protocol (wrap OpenAI / Anthropic / Ollama); no bundled
-  model or key. `SpatialMemory.open(verbalizer=...)` or per-call.
+  model or key. `TempoMem.open(verbalizer=...)` or per-call.
 - **`tempomem.bench.recall_at_k`** — lightweight retrieval eval over scripted
   `(query, expected_label)` cases; powers the M2 demo metric.
 - **`[clip]` CI lane** — installs the extra and smoke-tests `OpenClipEncoder`
@@ -137,10 +137,10 @@ All notable changes to Chronotope are documented here. Format follows
   sightings of the same object now converge to one node with aggregated
   geometry/feature/label distribution. See `spec/FUSION-ARBITER.md`.
 - `FusionConfig` / `ChronotopeConfig` — tunable thresholds and score weights,
-  passed via `SpatialMemory.open(config=...)`.
+  passed via `TempoMem.open(config=...)`.
 - `store.candidates_near`, `store.update_node` — proximity query + merge update.
 - `fusion.iou3d`, `fusion.label_compat`, `fusion.score` — scoring primitives.
-- **Semantic query** via a BYO `Encoder` protocol. `SpatialMemory.open(encoder=...)`
+- **Semantic query** via a BYO `Encoder` protocol. `TempoMem.open(encoder=...)`
   enables `query("red mug")` / `mem.semantic(text)` to embed the query string and
   rank nodes by feature cosine (linear scan); falls back to label keyword match
   when no encoder is set. `OpenClipEncoder` reference impl ships behind the

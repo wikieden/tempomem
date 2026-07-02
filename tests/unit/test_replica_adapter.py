@@ -9,7 +9,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from tempomem import SpatialMemory
+from tempomem import TempoMem
 from tempomem.datasets import (
     DatasetSource,
     HashEncoder,
@@ -90,7 +90,7 @@ def test_replica_stream_fuses_repeated_object_to_one_node(tmp_path) -> None:
         encoder=enc,
         min_pixels=1,
     )
-    with SpatialMemory.open(tmp_path / "rep.smem", embedding_dim=16, encoder=enc) as mem:
+    with TempoMem.open(tmp_path / "rep.smem", embedding_dim=16, encoder=enc) as mem:
         n_frames, n_obs = stream(mem, ad)
         assert (n_frames, n_obs) == (4, 4)
         assert mem.stats().n_nodes == 1  # 4 observations fuse to one node

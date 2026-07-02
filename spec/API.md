@@ -14,7 +14,7 @@ Normative. Anything not listed is non-public and may change without notice.
 ## Top-Level
 
 ```python
-class SpatialMemory:
+class TempoMem:
     @classmethod
     def open(cls, path: str | os.PathLike, *,
              embedding_dim: int = 512,
@@ -24,10 +24,10 @@ class SpatialMemory:
              encoder: Encoder | None = None,           # semantic query / answer
              verbalizer: Verbalizer | None = None,     # answer()
              adapter: PerceptionAdapter | None = None  # add_frame()
-             ) -> "SpatialMemory": ...
+             ) -> "TempoMem": ...
 
     def close(self) -> None: ...
-    def __enter__(self) -> "SpatialMemory": ...
+    def __enter__(self) -> "TempoMem": ...
     def __exit__(self, *a) -> None: ...
 ```
 
@@ -235,7 +235,7 @@ class ChangeSet:
 
 ## Configuration
 
-`SpatialMemory.open(..., config=ChronotopeConfig(...))`. All thresholds live on the config object, never as method kwargs:
+`TempoMem.open(..., config=ChronotopeConfig(...))`. All thresholds live on the config object, never as method kwargs:
 
 ```python
 @dataclass(frozen=True, slots=True)
@@ -284,7 +284,7 @@ GPU. The same object across frames converges to one node through fusion.
 class DatasetSource(Protocol):           # tempomem.datasets
     def frames(self) -> Iterator[list[Detection]]: ...   # one list per frame
 
-def stream(mem: SpatialMemory, source: DatasetSource, *,
+def stream(mem: TempoMem, source: DatasetSource, *,
            commit_every: int = 1,
            episode: str | None = None) -> tuple[int, int]: ...
     # Ingest every frame's detections into `mem`. commit() every `commit_every`

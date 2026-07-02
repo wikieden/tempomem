@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from tempomem import DatasetSource, HashEncoder, SpatialMemory, SyntheticScene, stream
+from tempomem import DatasetSource, HashEncoder, SyntheticScene, TempoMem, stream
 from tempomem.bench import recall_at_k
 
 DIM = 64
@@ -24,7 +24,7 @@ def test_source_satisfies_protocol() -> None:
 
 def test_stream_dedups_to_one_node_per_object(tmp_path) -> None:
     enc = HashEncoder(DIM)
-    with SpatialMemory.open(tmp_path / "s.smem", embedding_dim=DIM, encoder=enc) as mem:
+    with TempoMem.open(tmp_path / "s.smem", embedding_dim=DIM, encoder=enc) as mem:
         n_frames, n_obs = stream(mem, _scene(enc), commit_every=4)
         assert n_frames == 12
         assert n_obs == 48  # 12 frames x 4 objects
@@ -35,7 +35,7 @@ def test_stream_dedups_to_one_node_per_object(tmp_path) -> None:
 
 def test_stream_then_query_recall(tmp_path) -> None:
     enc = HashEncoder(DIM)
-    with SpatialMemory.open(tmp_path / "s2.smem", embedding_dim=DIM, encoder=enc) as mem:
+    with TempoMem.open(tmp_path / "s2.smem", embedding_dim=DIM, encoder=enc) as mem:
         stream(mem, _scene(enc))
         cases = [(lbl, lbl) for lbl, _ in _OBJECTS]
         rep = recall_at_k(mem, cases, k=3)
@@ -46,7 +46,7 @@ def test_stream_deterministic(tmp_path) -> None:
     enc = HashEncoder(DIM)
     counts = []
     for name in ("a", "b"):
-        with SpatialMemory.open(tmp_path / f"{name}.smem", embedding_dim=DIM, encoder=enc) as mem:
+        with TempoMem.open(tmp_path / f"{name}.smem", embedding_dim=DIM, encoder=enc) as mem:
             stream(mem, _scene(enc))
             counts.append(mem.stats().n_nodes)
     assert counts[0] == counts[1] == 4

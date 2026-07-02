@@ -14,7 +14,7 @@
 | T2 | Package skeleton `src/tempomem/__init__.py` with `__all__` + version | `import tempomem` works | T1 | 10 min |
 | T3 | `frame.py` — `Detection`, `Observation` frozen dataclasses + JSON round-trip | typed value objects | T2 | 30 min |
 | T4 | `persist/schema.sql` + `persist/migrations/001_init.py` — all tables from [SCHEMA.md](../../../spec/SCHEMA.md) | empty store creatable | T2 | 40 min |
-| T5 | `persist/__init__.py` — open/create, sqlite-vec + rtree load, migration runner, WAL | `SpatialMemory.open()` returns a live store | T4 | 40 min |
+| T5 | `persist/__init__.py` — open/create, sqlite-vec + rtree load, migration runner, WAL | `TempoMem.open()` returns a live store | T4 | 40 min |
 | T6 | `store.py` — Node/Edge/Episode CRUD + `stats()` | read/write graph rows | T5, T3 | 50 min |
 | T7 | Fusion **stub** — every observation = new node (no merge logic yet) | observations land as nodes | T6 | 20 min |
 | T8 | `query.py` minimal — `recent()` + `spatial()` (R-tree), no semantic yet | nodes retrievable | T6 | 30 min |

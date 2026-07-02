@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from tempomem import SpatialMemory
+from tempomem import TempoMem
 from tempomem.cli import main
 from tests.conftest import DIM, make_det
 
@@ -16,7 +16,7 @@ def test_version(capsys) -> None:
 
 def test_inspect(tmp_path, capsys) -> None:
     p = tmp_path / "c.smem"
-    with SpatialMemory.open(p, embedding_dim=DIM) as m:
+    with TempoMem.open(p, embedding_dim=DIM) as m:
         m.add_detections([make_det("mug", (1, 0, 0), 1)])
         m.commit()
     rc = main(["inspect", str(p), "--embedding-dim", str(DIM)])

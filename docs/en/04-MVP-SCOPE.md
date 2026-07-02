@@ -33,9 +33,9 @@ Ship the smallest thing a real user can `pip install` and immediately get value 
 
 ```python
 import json, numpy as np
-from tempomem import SpatialMemory, Detection
+from tempomem import TempoMem, Detection
 
-mem = SpatialMemory.open("kitchen.smem")
+mem = TempoMem.open("kitchen.smem")
 
 # Simulate 3 passes through a kitchen
 for det in load_synthetic_kitchen_detections():

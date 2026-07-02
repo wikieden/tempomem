@@ -1,7 +1,7 @@
 """Lightweight retrieval evaluation: recall@k over scripted queries.
 
 Reusable for the M2 demo metric ("ask 5 questions, get 4 right"). No external
-deps; operates on a live SpatialMemory via its public query API.
+deps; operates on a live TempoMem via its public query API.
 """
 
 from __future__ import annotations
@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from . import SpatialMemory
+    from . import TempoMem
 
 EvalCase = tuple[str, str]  # (query_text, expected_label)
 
@@ -27,7 +27,7 @@ class EvalReport:
         return self.hits / self.total if self.total else 0.0
 
 
-def recall_at_k(mem: SpatialMemory, cases: list[EvalCase], *, k: int = 5) -> EvalReport:
+def recall_at_k(mem: TempoMem, cases: list[EvalCase], *, k: int = 5) -> EvalReport:
     """Fraction of cases where the expected label appears in the top-k results.
 
     Label match is a case-insensitive bidirectional substring (so "coffee mug"
@@ -73,9 +73,9 @@ def persistence_after_reopen(
     different episodes it also measures cross-episode persistence. The store at
     ``path`` must already be committed and closed by the caller.
     """
-    from . import SpatialMemory
+    from . import TempoMem
 
-    mem = SpatialMemory.open(path, embedding_dim=embedding_dim, create=False)
+    mem = TempoMem.open(path, embedding_dim=embedding_dim, create=False)
     try:
         return recall_at_k(mem, cases, k=k)
     finally:
@@ -83,7 +83,7 @@ def persistence_after_reopen(
 
 
 def decay_forget(
-    mem: SpatialMemory,
+    mem: TempoMem,
     *,
     half_life_days: float = 30.0,
     min_conf: float = 0.1,

@@ -72,7 +72,7 @@ tempomem/                ← repo root
 ## Coding Conventions
 
 - Dataclasses (`frozen=True, slots=True`) for value types. Pydantic only at user-facing config boundary.
-- No global mutable state. `SpatialMemory` is the only stateful object.
+- No global mutable state. `TempoMem` is the only stateful object.
 - Logging via `logging.getLogger("tempomem.<module>")`. Never `print()`.
 - Public methods document units + frames in their docstring. Repeat even if redundant — these are the bugs we will hit.
 - Returns over raises for expected absence (`Optional`, `[]`). Raise only for programmer error or IO failure.
