@@ -285,3 +285,60 @@ def test_schema_v1_store_upgrades_to_v2(tmp_path) -> None:
         assert "semantic_edges" in tables
         assert "node_properties" in tables
         assert "smem_events" in tables
+
+
+# ---------------------------------------------------------------------------
+# last_seen (find-family, TASK-FAMILIES §3)
+# ---------------------------------------------------------------------------
+
+
+def test_last_seen_in_region(tmp_path) -> None:
+    with TempoMem.open(tmp_path / "ls1.smem", embedding_dim=DIM) as mem:
+        mem.add_detections([make_det("keys", (1.0, 1.0, 0.5), 1, ts=1000.0)])
+        mem.commit()
+        mem.define_region("living room", (0, 0, 0), (2, 2, 2))
+        got = mem.last_seen("keys", now=1030.0)
+        assert got is not None
+        region, age_s, confidence = got
+        assert region == "living room"
+        assert age_s == pytest.approx(30.0)
+        assert 0.0 <= confidence <= 1.0
+
+
+def test_last_seen_top_level_has_no_region(tmp_path) -> None:
+    with TempoMem.open(tmp_path / "ls2.smem", embedding_dim=DIM) as mem:
+        mem.add_detections([make_det("keys", (9.0, 9.0, 0.5), 1, ts=1000.0)])
+        mem.commit()
+        got = mem.last_seen("keys", now=1005.0)
+        assert got is not None
+        assert got[0] is None
+        assert got[1] == pytest.approx(5.0)
+
+
+def test_last_seen_unknown_returns_none(tmp_path) -> None:
+    with TempoMem.open(tmp_path / "ls3.smem", embedding_dim=DIM) as mem:
+        mem.add_detections([make_det("mug", (1, 1, 0.5), 1, ts=1000.0)])
+        mem.commit()
+        assert mem.last_seen("keys") is None
+
+
+def test_last_seen_most_recent_match_wins(tmp_path) -> None:
+    with TempoMem.open(tmp_path / "ls4.smem", embedding_dim=DIM) as mem:
+        # two same-label objects far apart (no fusion), observed at different times
+        mem.add_detections([make_det("cup", (0.0, 0.0, 0.5), 1, ts=1000.0)])
+        mem.add_detections([make_det("cup", (9.0, 9.0, 0.5), 2, ts=2000.0)])
+        mem.commit()
+        mem.define_region("kitchen", (8, 8, 0), (10, 10, 2))
+        got = mem.last_seen("cup", now=2010.0)
+        assert got is not None
+        assert got[0] == "kitchen"
+        assert got[1] == pytest.approx(10.0)
+
+
+def test_last_seen_region_node_not_matched(tmp_path) -> None:
+    with TempoMem.open(tmp_path / "ls5.smem", embedding_dim=DIM) as mem:
+        mem.add_detections([make_det("mug", (1, 1, 0.5), 1, ts=1000.0)])
+        mem.commit()
+        mem.define_region("pantry", (0, 0, 0), (2, 2, 2))
+        # a region label is not a find-able object
+        assert mem.last_seen("pantry") is None

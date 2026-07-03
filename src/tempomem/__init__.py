@@ -674,6 +674,37 @@ class TempoMem:
         """
         return store.observations_for_node(self._conn, node_id)
 
+    def last_seen(
+        self, name: str, *, now: float | None = None
+    ) -> tuple[str | None, float, float] | None:
+        """Where was `name` last seen — ``(region_label, age_s, confidence)``.
+
+        Exact-label lookup over object nodes (region nodes excluded); the most
+        recently observed match wins. ``region_label`` is the label of the
+        node's parent region, or None for a top-level node. ``age_s`` is
+        seconds since the node's last fusing observation (wall clock, or the
+        injected ``now``). ``confidence`` is the node's decayed confidence in
+        [0, 1] — the find-family hedging criterion (< 0.7 ⇒ hedge, not assert).
+        Returns None when no object with that label exists (expected absence,
+        not an error).
+        """
+        t = _now() if now is None else now
+        best: store.NodeRow | None = None
+        for n in store.all_nodes(self._conn):
+            # regions carry their own type ("room", ...); only detection-born
+            # object nodes are find-able things
+            if n.type != "object" or n.label != name:
+                continue
+            if best is None or n.t_last > best.t_last:
+                best = n
+        if best is None:
+            return None
+        region: str | None = None
+        if best.parent_id is not None:
+            parent = store.get_node(self._conn, best.parent_id)
+            region = parent.label if parent is not None else None
+        return region, max(0.0, t - best.t_last), best.confidence
+
     # ---- change detection ------------------------------------------------
 
     def moved(self, node_id: int) -> float:
