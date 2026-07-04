@@ -16,7 +16,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from . import fusion, persist, relations, serialize, store
+from . import fusion, persist, relations, serialize, store, trace
 from ._errors import (
     AdapterError,
     BadDetectionError,
@@ -42,6 +42,7 @@ from .query import semantic_vec as _semantic_vec
 from .query import spatial as _spatial
 from .store import StoreStats
 from .tools import ChronotopeTools
+from .trace import TraceLog, TraceRecord
 from .verbalize import Verbalizer
 from .verbalize import build_answer_prompt as _build_answer_prompt
 
@@ -74,6 +75,8 @@ __all__ = [
     "SyntheticScene",
     "TempoMem",
     "ToolError",
+    "TraceLog",
+    "TraceRecord",
     "Verbalizer",
     "__version__",
     "stream",
@@ -143,6 +146,7 @@ class TempoMem:
         self._verbalizer = verbalizer
         self._adapter = adapter
         self._pending: list[int] = []  # observation ids awaiting fusion
+        self._trace: trace.TraceLog | None = None  # lazy D2 shared-store trace
 
     # ---- lifecycle -------------------------------------------------------
 
@@ -173,6 +177,23 @@ class TempoMem:
 
     def __exit__(self, *_a: object) -> None:
         self.close()
+
+    def trace_log(self) -> trace.TraceLog:
+        """The episodic trace bound to this `.smem` store (D2: one shared store).
+
+        Lazily built over the SAME sqlite connection as the scene graph, so
+        node ids in trace rows and in the graph share one id space and one
+        file. Writes drain staged observations first (fuse-before-persist holds
+        across the shared connection); a read-only store returns a read-only
+        log. Units/frames: not applicable (bookkeeping records).
+        """
+        if self._trace is None:
+            self._trace = trace.TraceLog(
+                conn=self._conn,
+                before_commit=None if self._readonly else self._flush_pending,
+                readonly=self._readonly,
+            )
+        return self._trace
 
     # ---- ingest ----------------------------------------------------------
 

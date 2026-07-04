@@ -16,6 +16,15 @@ All notable changes to Chronotope are documented here. Format follows
   `spatialmem-brain` → `mindloop`. Nothing was published under the old names.
 
 ### Added
+- **`trace.TraceLog` + `TempoMem.trace_log()` (D2 merge)** — the L4 episodic
+  trace (append-only attempts/failures citing scene-graph node ids) now lives
+  in the core: standalone over its own sqlite file, or bound to the same
+  `.smem` connection as the scene graph (one store, one id space; table
+  `trace_episodes`). Shared-connection writes drain staged observations first,
+  so fuse-before-persist holds across the trace. Primitive-only API — the core
+  still never imports brain types. `mindloop.TraceStore` is now a thin adapter
+  over it (unchanged brain-facing API); pre-D2 standalone trace files are
+  adopted by an in-place copy migration.
 - **`datasets.ReplicaAdapter` + `datasets.gt_detections_from_frame`** — parse a
   Replica scene's GT instance masks + depth + trajectory into the
   `DatasetSource` detection stream (deproject -> world-frame centroid/bbox, pure
